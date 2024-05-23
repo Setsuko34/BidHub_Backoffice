@@ -1,24 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { Typography, Button } from "@mui/material";
-import { auth } from "../../config/Firebase"; // Replace with your Firebase Auth library
+import { Typography, Button, AppBar, Toolbar, IconButton } from "@mui/material";
+import { auth } from "../../config/Firebase";
+import { styled } from "@mui/system";
+import Appbar from "../utils/AppBar";
+
+const MyComponent = styled("div")(({ theme }) => ({
+  color: theme.palette.primary.main,
+}));
 
 const Accueil = () => {
-  // Initialize the Firebase Auth hook
-  const [user, setUser] = useState(null); // State to store the user's information
-
+  const [user, setUser] = useState(null);
   useEffect(() => {
-    // Fetch the user's information from Firebase
-    const fetchUser = async () => {
-      const currentUser = await auth.currentUser;
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       setUser(currentUser);
-    };
-    console.log(auth.currentUse);
+    });
 
-    fetchUser();
-  }, [auth]);
+    return () => unsubscribe();
+  }, []);
 
   return (
     <div>
+      <Appbar position="static" user={user} />
       <Typography variant="h1">Bienvenue sur BidHub Backoffice</Typography>
       <Typography variant="body1">
         C'est ici que vous pouvez gérer les enchères et les produits de

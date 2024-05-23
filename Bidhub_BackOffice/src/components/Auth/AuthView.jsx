@@ -1,19 +1,15 @@
-import React, { useState } from "react";
-import { app } from "../../config/Firebase";
-import {
-  Container,
-  Input,
-  Button,
-  FormControl,
-  InputLabel,
-} from "@mui/material";
-import { CircularProgress } from "@mui/material";
+import React, {useState} from "react";
+import {app} from "../../config/Firebase";
+import {Container, Input, Button, FormControl, InputLabel} from "@mui/material";
+import {CircularProgress} from "@mui/material";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signOut,
 } from "firebase/auth";
-import { auth } from "../../config/Firebase";
-import { useNavigate } from "react-router-dom";
+import {auth, db} from "../../config/Firebase";
+import {useNavigate} from "react-router-dom";
+import {doc, getDoc} from "firebase/firestore";
 
 const AuthView = () => {
   const [email, setEmail] = useState("");
@@ -32,9 +28,21 @@ const AuthView = () => {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password).then(
-        (userCredential) => {
+        async (userCredential) => {
           var user = userCredential.user;
           console.log(user);
+          // Get user document from Firestore
+          const userDoc = doc(db, "Utilisateurs", user.uid);
+          const userSnapshot = await getDoc(userDoc);
+
+          // Check if user is admin
+          if (userSnapshot.exists() && userSnapshot.data().status === "admin") {
+            history("/accueil");
+          } else {
+            // If user is not admin, sign out
+            await signOut(auth);
+            setError("Vous n'êtes pas autorisé à vous connecter");
+          }
         }
       );
     } catch (error) {
@@ -52,7 +60,6 @@ const AuthView = () => {
       console.log(error);
     } finally {
       setLoading(false);
-      history("/accueil");
     }
   };
 
@@ -60,8 +67,7 @@ const AuthView = () => {
     if (!email || !password || !passwordConfirm) {
       setError("Veuillez remplir tous les champs");
       return;
-    }
-    if (password !== passwordConfirm) {
+    } else if (password !== passwordConfirm) {
       setError("Les mots de passe ne correspondent pas");
       return;
     }
@@ -72,6 +78,7 @@ const AuthView = () => {
           var user = userCredential.user;
           user.sendEmailVerification();
           console.log(user);
+          history("/accueil");
         }
       );
     } catch (error) {
@@ -79,11 +86,18 @@ const AuthView = () => {
         setError("Cet email est déjà utilisé");
       } else if (error.code === "auth/invalid-email") {
         setError("Cet email est invalide");
+      } else if (error.code === "auth/weak-password") {
+        setError("Le mot de passe doit contenir au moins 6 caractères");
+      } else if (error.code === "auth/network-request-failed") {
+        setError("Erreur de connexion, veuillez réessayer plus tard");
+      } else if (error.code === "auth/too-many-requests") {
+        setError("Trop de tentatives, veuillez réessayer plus tard");
+      } else if (error.code === "auth/operation-not-allowed") {
+        setError("Les inscriptions ne sont pas autorisées pour le moment");
       }
       console.log(error);
     } finally {
       setLoading(false);
-      history("/accueil");
     }
   };
 
@@ -141,16 +155,16 @@ const AuthView = () => {
         </FormControl>
       )}
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p style={{color: "red"}}>{error}</p>}
       {isSignIn ? (
-        <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{display: "flex", flexDirection: "column"}}>
           <button onClick={handleLogin} style={styles.button}>
             Se connecter
           </button>
           <a onClick={() => setIsSignIn(false)}>Pas encore de compte ?</a>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{display: "flex", flexDirection: "column"}}>
           <button onClick={handleSignup} style={styles.button}>
             S'inscrire
           </button>
@@ -178,7 +192,7 @@ const styles = {
     width: "100%",
     padding: "10px 30px",
     margin: "10px 0",
-    backgroundColor: "white",
+    backgroundColor: "#3d3d3d",
     borderRadius: "10px",
   },
   button: {
