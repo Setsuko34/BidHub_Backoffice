@@ -7,8 +7,8 @@ import Appbar from "../utils/AppBar";
 import {db} from "../../config/Firebase";
 import {collection, getDocs} from "firebase/firestore";
 
-const Users = () => {
-  const [users, setUsers] = useState([]);
+const Articles = () => {
+  const [Articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const columns = [
     {
@@ -23,8 +23,8 @@ const Users = () => {
         />
       ),
     },
-    {field: "name", headerName: "Nom", flex: 1},
-    {field: "email", headerName: "Email", flex: 1},
+    {field: "title", headerName: "Titre", flex: 1},
+    {field: "prix_depart", headerName: "Prix de départ", flex: 1},
     {field: "status", headerName: "Statut", flex: 1},
     {
       field: "actions",
@@ -39,23 +39,24 @@ const Users = () => {
       ),
     },
   ];
-  const rows = users.map((user) => ({
-    id: user.id,
-    photo: user.photoURL,
-    name: user.username || "N/A",
-    email: user.email || "N/A",
-    status: user.status || "N/A",
+  const rows = Articles.map((article) => ({
+    id: article.id,
+    photo: article.photoURL,
+    title: article.title || "N/A",
+    prix_depart: article.prix_depart +' €' || "N/A",
+    status: article.status|| "N/A",
   }));
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchArticles = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "Utilisateurs"));
-        const usersList = querySnapshot.docs.map((doc) => ({
+        const querySnapshot = await getDocs(collection(db, "Articles"));
+        console.log(querySnapshot);
+        const ArticlesList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-        setUsers(usersList);
+        setArticles(ArticlesList);
         setLoading(false);
       } catch (error) {
         console.error(
@@ -66,7 +67,7 @@ const Users = () => {
       }
     };
 
-    fetchUsers();
+    fetchArticles();
   }, []);
 
   if (loading) {
@@ -76,7 +77,7 @@ const Users = () => {
   return (
     <div>
       <Appbar position="static" user={auth.currentUser} />
-      <h1>Liste des Utilisateurs</h1>
+      <h1>Liste des Articles</h1>
       <div style={{height:'100%', width:'100%'}}>
         <DataGrid rows={rows} columns={columns} pageSize={5} slots={{toolbar:GridToolbar}} slotProps={{
           toolbar: {
@@ -88,4 +89,4 @@ const Users = () => {
   );
 };
 
-export default Users;
+export default Articles;

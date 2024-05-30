@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Typography, Button, AppBar, Toolbar, IconButton } from "@mui/material";
+import { Typography, Button, AppBar, Toolbar, IconButton, Container } from "@mui/material";
 import { auth } from "../../config/Firebase";
 import { styled } from "@mui/system";
 import Appbar from "../utils/AppBar";
@@ -19,7 +19,7 @@ const Accueil = () => {
   }, []);
 
   return (
-    <div>
+    <Container maxWidth="xl">
       <Appbar position="static" user={user} />
       <Typography variant="h1">Bienvenue sur BidHub Backoffice</Typography>
       <Typography variant="body1">
@@ -30,7 +30,7 @@ const Accueil = () => {
         Commencer
       </Button>
       {user && <Typography variant="body1">Email: {user.email}</Typography>}
-    </div>
+    </Container>
   );
 };
 
