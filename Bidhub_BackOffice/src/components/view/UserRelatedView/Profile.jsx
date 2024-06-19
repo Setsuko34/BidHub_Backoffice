@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import {Typography, Avatar, Button, TextField} from "@mui/material";
-import {auth, db, storage} from "../../config/Firebase"; // Remplacer avec votre configuration Firebase
-import Appbar from "../utils/AppBar";
+import {auth, db, storage} from "../../../config/Firebase"; // Remplacer avec votre configuration Firebase
+import Appbar from "../../utils/AppBar";
 import {useNavigate} from "react-router-dom";
 import {updateProfile, updateEmail} from "firebase/auth";
 import {doc, updateDoc} from "firebase/firestore"; // Pour mettre à jour les informations supplémentaires stockées dans Firestore

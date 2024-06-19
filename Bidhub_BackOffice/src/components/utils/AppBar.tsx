@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { auth } from "../../config/Firebase";
+import React, {useEffect} from "react";
+import {useNavigate} from "react-router-dom";
+import {auth} from "../../config/Firebase";
 import {
   AppBar,
   Toolbar,
@@ -19,7 +19,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 const pages = ["Articles", "Utilisateurs", "Transactions"];
 
-const Appbar = ({ user }) => {
+const Appbar = ({user}) => {
   const history = useNavigate();
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
@@ -93,27 +93,20 @@ const Appbar = ({ user }) => {
     <AppBar position="fixed">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
-          <AdbIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
-          <Typography
-            variant="h6"
-            noWrap
-            component="a"
-            href="#app-bar-with-responsive-menu"
+          <Box
+            component="img"
+            src="./src/assets/images/logo_encore.png"
+            alt="Logo"
             sx={{
-              mr: 2,
-              display: { xs: "none", md: "flex" },
-              fontFamily: "monospace",
-              fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "inherit",
-              textDecoration: "none",
+              display: {xs: "none", md: "flex"},
+              mr: 1,
+              height: 50,
+              cursor: "pointer",
             }}
             onClick={handleAccueil}
-          >
-            BIDHUB
-          </Typography>
+          />
 
-          <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
+          <Box sx={{flexGrow: 1, display: {xs: "flex", md: "none"}}}>
             <IconButton
               size="large"
               aria-label="account of current user"
@@ -139,7 +132,7 @@ const Appbar = ({ user }) => {
               open={Boolean(anchorElNav)}
               onClose={handleCloseNavMenu}
               sx={{
-                display: { xs: "block", md: "none" },
+                display: {xs: "block", md: "none"},
               }}
             >
               {pages.map((page) => (
@@ -149,14 +142,14 @@ const Appbar = ({ user }) => {
               ))}
             </Menu>
           </Box>
-          <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
+          <AdbIcon sx={{display: {xs: "flex", md: "none"}, mr: 1}} />
           <Typography
             variant="h5"
             noWrap
             component="a"
             sx={{
               mr: 2,
-              display: { xs: "flex", md: "none" },
+              display: {xs: "flex", md: "none"},
               flexGrow: 1,
               fontFamily: "monospace",
               fontWeight: 700,
@@ -167,26 +160,26 @@ const Appbar = ({ user }) => {
           >
             BIDHUB
           </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
+          <Box sx={{flexGrow: 1, display: {xs: "none", md: "flex"}}}>
             {pages.map((page) => (
               <Button
                 key={page}
                 onClick={() => handlePage(page)}
-                sx={{ my: 2, color: "white", display: "block" }}
+                sx={{my: 2, color: "white", display: "block"}}
               >
                 {page}
               </Button>
             ))}
           </Box>
 
-          <Box sx={{ flexGrow: 0 }}>
+          <Box sx={{flexGrow: 0}}>
             <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+              <IconButton onClick={handleOpenUserMenu} sx={{p: 0}}>
                 <Avatar src={photoURL} />
               </IconButton>
             </Tooltip>
             <Menu
-              sx={{ mt: "45px" }}
+              sx={{mt: "45px"}}
               id="menu-appbar"
               anchorEl={anchorElUser}
               anchorOrigin={{

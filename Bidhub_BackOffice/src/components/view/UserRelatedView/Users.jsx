@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from "react";
 import {Avatar} from "@mui/material";
-import {DataGrid, GridToolbar } from "@mui/x-data-grid";
-import {auth} from "../../config/Firebase";
-import {styled} from "@mui/system";
-import Appbar from "../utils/AppBar";
-import {db} from "../../config/Firebase";
+import {DataGrid, GridToolbar} from "@mui/x-data-grid";
+import {auth} from "../../../config/Firebase";
+import Appbar from "../../utils/AppBar";
+import {db} from "../../../config/Firebase";
 import {collection, getDocs} from "firebase/firestore";
+import UsersActionsMenu from "../../utils/ActionMenu/UsersActionsMenu";
+import {Grid} from "react-loader-spinner";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -29,14 +30,8 @@ const Users = () => {
     {
       field: "actions",
       headerName: "Actions",
-      width: 300,
-      renderCell: (params) => (
-        <Avatar
-          src={params.row.photo}
-          alt={params.row.name}
-          sx={{width: 50, height: 50, borderRadius: "0%"}}
-        />
-      ),
+      flex: 1,
+      renderCell: (params) => <UsersActionsMenu userId={params.row.id} />,
     },
   ];
   const rows = users.map((user) => ({
@@ -45,6 +40,7 @@ const Users = () => {
     name: user.username || "N/A",
     email: user.email || "N/A",
     status: user.status || "N/A",
+    actions: user.id,
   }));
 
   useEffect(() => {
@@ -70,19 +66,45 @@ const Users = () => {
   }, []);
 
   if (loading) {
-    return <div>Chargement...</div>;
+    return (
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Grid
+          visible={true}
+          height="80"
+          width="80"
+          color="#FFA31A"
+          ariaLabel="grid-loading"
+          radius="12.5"
+          wrapperStyle={{}}
+          wrapperClass="grid-wrapper"
+        />
+      </div>
+    );
   }
 
   return (
     <div>
       <Appbar position="static" user={auth.currentUser} />
       <h1>Liste des Utilisateurs</h1>
-      <div style={{height:'100%', width:'100%'}}>
-        <DataGrid rows={rows} columns={columns} pageSize={5} slots={{toolbar:GridToolbar}} slotProps={{
-          toolbar: {
-            showQuickFilter: true,
-          },
-        }}/>
+      <div style={{height: "100%", width: "100%"}}>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          pageSize={5}
+          slots={{toolbar: GridToolbar}}
+          slotProps={{
+            toolbar: {
+              showQuickFilter: true,
+            },
+          }}
+        />
       </div>
     </div>
   );
