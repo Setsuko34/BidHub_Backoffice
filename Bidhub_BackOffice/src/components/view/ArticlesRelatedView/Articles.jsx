@@ -1,14 +1,15 @@
 import React, {useEffect, useState} from "react";
-import {Avatar, Chip} from "@mui/material";
+import {Avatar, Chip, Box, Typography, Button} from "@mui/material";
 import {DataGrid, GridToolbar} from "@mui/x-data-grid";
 import {auth} from "../../../config/Firebase";
-import {styled} from "@mui/system";
 import Appbar from "../../utils/AppBar";
 import {db} from "../../../config/Firebase";
 import {collection, getDocs} from "firebase/firestore";
 import ArticlesActionsMenu from "../../utils/ActionMenu/ArticlesActionsMenu";
-import {alignProperty} from "@mui/material/styles/cssUtils";
 import {Grid} from "react-loader-spinner";
+import Addicon from "@mui/icons-material/Add";
+import {getAllArticles} from "./ArticleLogic";
+import AddArticleModal from "../../utils/ActionMenu/AddArticleModal";
 
 const Articles = () => {
   const [Articles, setArticles] = useState([]);
@@ -67,38 +68,12 @@ const Articles = () => {
   }));
 
   useEffect(() => {
-    const fetchArticles = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "Articles"));
-        console.log(querySnapshot);
-        const ArticlesList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setArticles(ArticlesList);
-        setLoading(false);
-      } catch (error) {
-        console.error(
-          "Erreur lors de la récupération des utilisateurs:",
-          error
-        );
-        setLoading(false);
-      }
-    };
-
-    fetchArticles();
+    getAllArticles(setArticles, setLoading);
   }, [loading]);
 
   if (loading) {
     return (
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+      <div className="page-centered">
         <Grid
           visible={true}
           height="80"
@@ -116,8 +91,12 @@ const Articles = () => {
   return (
     <div>
       <Appbar position="static" user={auth.currentUser} />
-      <h1>Liste des Articles</h1>
-      <div style={{height: "100%", width: "100%"}}>
+      <Box className="TitlewithButton">
+        <Typography variant="h4">Liste des Articles</Typography>
+        <AddArticleModal />
+      </Box>
+
+      <Box>
         <DataGrid
           rows={rows}
           columns={columns}
@@ -129,7 +108,7 @@ const Articles = () => {
             },
           }}
         />
-      </div>
+      </Box>
     </div>
   );
 };

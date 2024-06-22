@@ -14,10 +14,10 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import * as articleLogic from "./ArticleLogic";
 
 const ArticleDetail = () => {
   const {idArticle} = useParams();
-  console.log("ArticleDetail idArticle", idArticle);
   const [isEditing, setIsEditing] = useState(false);
   const articleRef = doc(db, "Articles", idArticle);
   const encheresRef = query(
@@ -26,26 +26,16 @@ const ArticleDetail = () => {
   );
   const [article, setArticle] = useState({});
   const [encheres, setEncheres] = useState([]);
-
-  const articleGetInfo = async () => {
-    const docSnap = await getDoc(articleRef);
-    const encheresSnap = await getDocs(encheresRef);
-    if (docSnap.exists()) {
-      console.log("Document data:", docSnap.data());
-      console.log(
-        "encheres data:",
-        encheresSnap.docs.map((doc) => doc.data())
-      );
-      setArticle(docSnap.data());
-      setEncheres(encheresSnap.docs.map((doc) => doc.data()));
-    } else {
-      // doc.data() will be undefined in this case
-      console.log("No such document!");
-    }
-  };
+  const [creator, setCreator] = useState({}); //[creator, setCreator
 
   useEffect(() => {
-    articleGetInfo();
+    articleLogic.GetInfo(
+      articleRef,
+      encheresRef,
+      setArticle,
+      setEncheres,
+      setCreator
+    );
   }, []);
 
   const handleEdit = () => {
@@ -68,11 +58,20 @@ const ArticleDetail = () => {
   return (
     <div>
       <Appbar />
-      <Typography variant="h4">{article.title}</Typography>
-      <Button variant="outlined" onClick={handleEdit}>
-        <EditIcon />
-        Modifier
-      </Button>
+      <Box
+        sx={{
+          display: "flex",
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Typography variant="h4">{article.title}</Typography>
+        <Button variant="outlined" onClick={handleEdit}>
+          <EditIcon />
+          Modifier
+        </Button>
+      </Box>
       {isEditing ? (
         <div>
           <TextField
@@ -93,7 +92,7 @@ const ArticleDetail = () => {
             {article.date_heure_fin?.toDate()?.toLocaleString()}
           </Typography>
           <Typography>Description: {article.description}</Typography>
-          <Typography>ID utilisateur: {article.id_user}</Typography>
+          <Typography>Createur : {creator.username}</Typography>
           <Typography>Prix de départ: {article.prix_depart}</Typography>
         </div>
       )}
