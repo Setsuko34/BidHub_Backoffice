@@ -93,7 +93,7 @@ const Articles = () => {
       <Appbar position="static" user={auth.currentUser} />
       <Box className="TitlewithButton">
         <Typography variant="h4">Liste des Articles</Typography>
-        <AddArticleModal />
+        <AddArticleModal user={auth.currentUser} />
       </Box>
 
       <Box>

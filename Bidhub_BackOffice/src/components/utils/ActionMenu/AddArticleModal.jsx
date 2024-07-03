@@ -1,28 +1,27 @@
 import React, {useState} from "react";
 import {Modal, Button, TextField} from "@mui/material";
-import {db} from "../../../config/Firebase";
-import {
-  doc,
-  getDoc,
-  updateDoc,
-  collection,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
+import {collection, addDoc} from "firebase/firestore";
+import {auth, db, storage} from "../../../config/Firebase";
+import {ref, uploadBytes, getDownloadURL} from "firebase/storage";
 import Addicon from "@mui/icons-material/Add";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import {DateTimePicker} from "@mui/x-date-pickers/DateTimePicker";
 import {LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import "dayjs/locale/fr";
 
-const AddArticleModal = () => {
+dayjs.locale("fr");
+dayjs().format("DD/MM/YYYY HH:mm:ss");
+
+const AddArticleModal = ({user}) => {
   //   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [prixDepart, setPrixDepart] = useState(0);
   const [description, setDescription] = useState("");
-  const [images, setImages] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [endDate, setEndDate] = useState(dayjs());
+  const [file, setFile] = useState(null);
 
   const handleOpen = () => {
     setOpen(true);
@@ -41,39 +40,58 @@ const AddArticleModal = () => {
   };
 
   const handleImageChange = (event) => {
-    const selectedImages = Array.from(event.target.files);
-    setImages(selectedImages);
+    const file = event.target.files[0];
+    setFile(file);
   };
 
-  const handleCreateArticle = () => {
-    // Upload images to Firebase storage
-    const storageRef = db.storage().ref();
-    const imageUrls = [];
+  const handleEndDateChange = (event) => {
+    setEndDate(event.target.value);
+  };
 
-    images.forEach((image) => {
-      const imageRef = storageRef.child(`images/${image.name}`);
-      imageRef.put(image).then((snapshot) => {
-        snapshot.ref.getDownloadURL().then((url) => {
-          imageUrls.push(url);
+  const handlePrixDepartChange = (event) => {
+    setPrixDepart(event.target.value);
+  };
 
-          // Create new article in Firebase database
-          const articlesRef = db.database().ref("Articles");
-          const newArticle = {
-            title: title,
-            description: description,
-            images: imageUrls,
-          };
+  const handleCreateArticle = async () => {
+    try {
+      // console.log("Creating article...");
+      // console.log("Title:", title);
+      // console.log("Description:", description);
+      // console.log("Prix de départ:", prixDepart);
+      // console.log("End Date:", dayjs(endDate).valueOf());
+      // console.log("File:", file);
+      // console.log("User:", user.uid);
 
-          articlesRef.push(newArticle);
+      // Upload images to Firebase storage
+      const fileRef = ref(storage, `articles/${file.name}`);
+      const snapshot = await uploadBytes(fileRef, file);
+      const url = await getDownloadURL(snapshot.ref);
+      // Create new article in Firebase database
+      const articlesRef = collection(db, "Articles");
+      const newArticle = {
+        title: title,
+        description: description,
+        prix_depart: prixDepart,
+        fileUrl: url,
+        date_heure_debut: dayjs().toDate(),
+        date_heure_fin: dayjs(endDate).toDate(),
+        id_user: user.uid,
+      };
 
-          // Reset form fields and close modal
-          setTitle("");
-          setDescription("");
-          setImages([]);
-          setOpen(false);
-        });
-      });
-    });
+      await addDoc(articlesRef, newArticle);
+
+      // articlesRef.push(newArticle);
+
+      // Reset form fields and close modal
+      setTitle("");
+      setDescription("");
+      setPrixDepart(0);
+      setFile(null);
+      setEndDate(dayjs());
+      setOpen(false);
+    } catch (error) {
+      console.error("Error creating article:", error);
+    }
   };
 
   return (
@@ -89,36 +107,67 @@ const AddArticleModal = () => {
         aria-labelledby="add-article-modal"
         aria-describedby="add-article-modal-description"
       >
-        <div className="modal-content">
-          <h2 id="add-article-modal">Add Article</h2>
-          <TextField label="Title" value={title} onChange={handleTitleChange} />
+        <div
+          className="modal-content"
+          style={{
+            width: "50%",
+          }}
+        >
+          <h2 id="add-article-modal">Ajouter un Article</h2>
+          <TextField
+            label="Title"
+            value={title}
+            onChange={handleTitleChange}
+            sx={{marginBottom: 3}}
+          />
           <TextField
             label="Description"
             value={description}
             onChange={handleDescriptionChange}
+            sx={{marginBottom: 3}}
+          />
+          <TextField
+            label="Prix de départ"
+            value={prixDepart}
+            onChange={handlePrixDepartChange}
+            type="number"
+            sx={{marginBottom: 3}}
           />
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DateTimePicker
               label="Fin de l'enchère"
-              value={selectedDate}
+              value={endDate}
               onChange={(newValue) => {
-                setSelectedDate(newValue);
+                setEndDate(newValue);
               }}
+              sx={{marginBottom: 3}}
               renderInput={(params) => <TextField {...params} />}
             />
           </LocalizationProvider>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleImageChange}
-          />
+
+          <Button
+            component="label"
+            role={undefined}
+            variant="contained"
+            tabIndex={-1}
+            startIcon={<CloudUploadIcon />}
+            sx={{marginBottom: 3}}
+          >
+            Télécharger le fichier
+            <input
+              type="file"
+              accept="image/*, video/*, pdf/*, audio/*"
+              onChange={handleImageChange}
+              style={{display: "none"}}
+            />
+          </Button>
           <Button
             variant="contained"
             color="primary"
             onClick={handleCreateArticle}
+            sx={{marginBottom: 3}}
           >
-            Create Article
+            Créer l'article
           </Button>
         </div>
       </Modal>

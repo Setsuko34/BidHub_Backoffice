@@ -13,11 +13,15 @@ import {useNavigate} from "react-router-dom";
 import {
   doc,
   getDocs,
+  getDoc,
   deleteDoc,
   collection,
   query,
   where,
 } from "firebase/firestore";
+
+import {ref, deleteObject} from "firebase/storage";
+import {storage} from "../../../config/Firebase";
 
 export default function ArticlesActionsMenu({articleId, refresh}) {
   const history = useNavigate();
@@ -47,19 +51,29 @@ export default function ArticlesActionsMenu({articleId, refresh}) {
   const handleDelete = async () => {
     console.log("Supprimer l'article");
     const EncheresArticles = await getDocs(EncheresRef);
+    const doc = await getDoc(docRef);
 
     if (
       window.confirm(
         `Voulez-vous vraiment supprimer cet article et les ${EncheresArticles.size} enchères qui lui sont associées ?`
       )
     ) {
+      // delete l'article dans storage
+      doc.data().fileUrl &&
+        deleteObject(ref(storage, doc.data().fileUrl))
+          .then(() => {
+            console.log("Article deleted successfully from storage");
+          })
+          .catch((error) => {
+            console.error("Error deleting Article:", error);
+          });
       // delete le document de l'utilisateur dans la base de données Firestore
       await deleteDoc(docRef)
         .then(() => {
-          console.log("User deleted successfully");
+          console.log("Articles deleted successfully from database");
         })
         .catch((error) => {
-          console.error("Error deleting user:", error);
+          console.error("Error deleting Article:", error);
         });
 
       // delete les enchères de l'article dans la base de données Firestore
