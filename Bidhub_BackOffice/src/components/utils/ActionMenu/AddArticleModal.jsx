@@ -1,8 +1,5 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {Modal, Button, TextField} from "@mui/material";
-import {collection, addDoc} from "firebase/firestore";
-import {auth, db, storage} from "../../../config/Firebase";
-import {ref, uploadBytes, getDownloadURL} from "firebase/storage";
 import Addicon from "@mui/icons-material/Add";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import {DateTimePicker} from "@mui/x-date-pickers/DateTimePicker";
@@ -10,11 +7,12 @@ import {LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
+import {CreateArticle} from "../../view/ArticlesRelatedView/ArticleLogic";
 
 dayjs.locale("fr");
 dayjs().format("DD/MM/YYYY HH:mm:ss");
 
-const AddArticleModal = ({user, refresh}) => {
+const AddArticleModal = ({user, refresh, idarticle}) => {
   //   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -22,6 +20,16 @@ const AddArticleModal = ({user, refresh}) => {
   const [description, setDescription] = useState("");
   const [endDate, setEndDate] = useState(dayjs());
   const [file, setFile] = useState(null);
+
+  useEffect(() => {
+    if (idarticle) {
+      //TODO : set values et le récuperer avec firebase et les afficher dans les champs
+      setTitle(idarticle.title);
+      setDescription(idarticle.description);
+      setPrixDepart(idarticle.prix_depart);
+      setEndDate(dayjs(idarticle.date_heure_fin));
+    }
+  }, [idarticle]);
 
   const handleOpen = () => {
     setOpen(true);
@@ -53,38 +61,27 @@ const AddArticleModal = ({user, refresh}) => {
   };
 
   const handleCreateArticle = async () => {
-    const url = [];
-    try {
-      // Upload images to Firebase storage
-      const fileRef = ref(storage, `articles/${file.name}`);
-      const snapshot = await uploadBytes(fileRef, file);
-      const urlSnap = await getDownloadURL(snapshot.ref);
-      url.push(urlSnap);
-      // Create new article in Firebase database
-      const articlesRef = collection(db, "Articles");
-      const newArticle = {
-        title: title,
-        description: description,
-        prix_depart: Number(prixDepart),
-        img_list: url,
-        date_heure_debut: dayjs().toDate(),
-        date_heure_fin: dayjs(endDate).toDate(),
-        id_user: user.uid,
-      };
-
-      await addDoc(articlesRef, newArticle);
-      // Reset form fields and close modal
-      setTitle("");
-      setDescription("");
-      setPrixDepart(0);
-      setFile(null);
-      setEndDate(dayjs());
-      setOpen(false);
-      refresh(true);
-    } catch (error) {
-      console.error("Error creating article:", error);
-    }
+    const article = {
+      title,
+      description,
+      prixDepart,
+      endDate,
+      id_user: user.uid,
+    };
+    CreateArticle(
+      article,
+      file,
+      refresh,
+      setTitle,
+      setDescription,
+      setPrixDepart,
+      setFile,
+      setEndDate,
+      setOpen
+    );
   };
+  // TODO : faire le contenue de la fonction handleUpdateArticle a savoir, update l'article avec les nouvelles valeurs, supprimer l'ancien fichier et le remplacer par le nouveau
+  const handleUpdateArticle = async () => {};
 
   return (
     <div>
@@ -156,10 +153,10 @@ const AddArticleModal = ({user, refresh}) => {
           <Button
             variant="contained"
             color="primary"
-            onClick={handleCreateArticle}
+            onClick={idarticle ? handleUpdateArticle : handleCreateArticle}
             sx={{marginBottom: 3}}
           >
-            Créer l'article
+            {idarticle ? "Sauvegarder" : "Créer l'article"}
           </Button>
         </div>
       </Modal>

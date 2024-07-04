@@ -190,9 +190,11 @@ const Appbar = ({user}) => {
               onClose={handleCloseUserMenu}
             >
               <MenuItem onClick={handleprofile}>
+                <MenuIcon />
                 <Typography textAlign="center">Profil</Typography>
               </MenuItem>
               <MenuItem onClick={handleLogout}>
+                <LogoutIcon />
                 <Typography textAlign="center">Déconnexion</Typography>
               </MenuItem>
             </Menu>
