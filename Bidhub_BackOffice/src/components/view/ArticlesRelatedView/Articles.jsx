@@ -15,18 +15,7 @@ const Articles = () => {
   const [Articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const columns = [
-    {
-      field: "photo",
-      headerName: "Photo",
-      flex: 1,
-      renderCell: (params) => (
-        <Avatar
-          src={params.row.photo}
-          alt={params.row.name}
-          sx={{width: 50, height: 50, borderRadius: "0%"}}
-        />
-      ),
-    },
+    {field: "id", headerName: "ID", flex: 1},
     {field: "title", headerName: "Titre", flex: 1},
     {field: "prix_depart", headerName: "Prix de départ", flex: 1},
     {
@@ -57,7 +46,6 @@ const Articles = () => {
   ];
   const rows = Articles.map((article) => ({
     id: article.id,
-    photo: article.photoURL,
     title: article.title || "N/A",
     prix_depart: article.prix_depart + " €" || "N/A",
     status:
@@ -93,7 +81,7 @@ const Articles = () => {
       <Appbar position="static" user={auth.currentUser} />
       <Box className="TitlewithButton">
         <Typography variant="h4">Liste des Articles</Typography>
-        <AddArticleModal user={auth.currentUser} />
+        <AddArticleModal user={auth.currentUser} refresh={setLoading} />
       </Box>
 
       <Box>

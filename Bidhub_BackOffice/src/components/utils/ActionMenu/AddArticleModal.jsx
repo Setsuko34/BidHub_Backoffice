@@ -14,7 +14,7 @@ import "dayjs/locale/fr";
 dayjs.locale("fr");
 dayjs().format("DD/MM/YYYY HH:mm:ss");
 
-const AddArticleModal = ({user}) => {
+const AddArticleModal = ({user, refresh}) => {
   //   const classes = useStyles();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -53,35 +53,26 @@ const AddArticleModal = ({user}) => {
   };
 
   const handleCreateArticle = async () => {
+    const url = [];
     try {
-      // console.log("Creating article...");
-      // console.log("Title:", title);
-      // console.log("Description:", description);
-      // console.log("Prix de départ:", prixDepart);
-      // console.log("End Date:", dayjs(endDate).valueOf());
-      // console.log("File:", file);
-      // console.log("User:", user.uid);
-
       // Upload images to Firebase storage
       const fileRef = ref(storage, `articles/${file.name}`);
       const snapshot = await uploadBytes(fileRef, file);
-      const url = await getDownloadURL(snapshot.ref);
+      const urlSnap = await getDownloadURL(snapshot.ref);
+      url.push(urlSnap);
       // Create new article in Firebase database
       const articlesRef = collection(db, "Articles");
       const newArticle = {
         title: title,
         description: description,
-        prix_depart: prixDepart,
-        fileUrl: url,
+        prix_depart: Number(prixDepart),
+        img_list: url,
         date_heure_debut: dayjs().toDate(),
         date_heure_fin: dayjs(endDate).toDate(),
         id_user: user.uid,
       };
 
       await addDoc(articlesRef, newArticle);
-
-      // articlesRef.push(newArticle);
-
       // Reset form fields and close modal
       setTitle("");
       setDescription("");
@@ -89,6 +80,7 @@ const AddArticleModal = ({user}) => {
       setFile(null);
       setEndDate(dayjs());
       setOpen(false);
+      refresh(true);
     } catch (error) {
       console.error("Error creating article:", error);
     }

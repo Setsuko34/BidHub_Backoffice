@@ -17,7 +17,7 @@ import {
 import AdbIcon from "@mui/icons-material/Adb";
 import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
-const pages = ["Articles", "Utilisateurs", "Transactions"];
+const pages = ["Articles", "Utilisateurs"];
 
 const Appbar = ({user}) => {
   const history = useNavigate();
@@ -59,9 +59,6 @@ const Appbar = ({user}) => {
   const handleUsers = () => {
     history("/users");
   };
-  const handleTransactions = () => {
-    history("/transactions");
-  };
 
   const handlePage = (page) => {
     console.log(page);
@@ -70,8 +67,6 @@ const Appbar = ({user}) => {
         return handleArticles();
       case "Utilisateurs":
         return handleUsers();
-      case "Transactions":
-        return handleTransactions();
       default:
         return handleCloseNavMenu();
     }
