@@ -16,11 +16,6 @@ export default function ArticlesActionsMenu({articleId, refresh}) {
   const history = useNavigate();
   const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
-  const docRef = doc(db, "Articles", articleId);
-  const EncheresRef = query(
-    collection(db, "Encheres"),
-    where("id_articles", "==", articleId)
-  );
 
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
@@ -37,7 +32,7 @@ export default function ArticlesActionsMenu({articleId, refresh}) {
     history(`/articleDetail/${articleId}`);
   };
   const handleDelete = async () => {
-    DeleteArticle(docRef, EncheresRef, setOpen, refresh);
+    DeleteArticle(articleId, setOpen, refresh);
   };
 
   return (

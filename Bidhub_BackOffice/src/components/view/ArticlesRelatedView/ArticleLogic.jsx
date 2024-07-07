@@ -10,7 +10,7 @@ import {
   where,
 } from "firebase/firestore";
 import {db, storage} from "../../../config/Firebase";
-import {ref, uploadBytes, getDownloadURL} from "firebase/storage";
+import {ref, uploadBytes, getDownloadURL, deleteObject} from "firebase/storage";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 
@@ -31,12 +31,16 @@ export const getAllArticles = async (setArticles, setLoading) => {
 };
 
 export const GetInfo = async (
-  articleRef,
-  encheresRef,
+  idArticle,
   setArticle,
   setEncheres,
   setCreator
 ) => {
+  const articleRef = doc(db, "Articles", idArticle);
+  const encheresRef = query(
+    collection(db, "Encheres"),
+    where("id_article", "==", idArticle)
+  );
   const docSnap = await getDoc(articleRef);
   const encheresSnap = await getDocs(encheresRef);
   if (docSnap.exists()) {
@@ -56,13 +60,6 @@ export const GetInfo = async (
   const creatorSnap = await getDoc(creatorRef);
   setCreator(creatorSnap.data());
   console.log("creator data:", creatorSnap.data());
-};
-
-export const UpdateArticle = async (articleRef, article) => {
-  await updateDoc(articleRef, {
-    ...article,
-  });
-  console.log("Document successfully updated!");
 };
 
 export const CreateArticle = async (
@@ -111,13 +108,41 @@ export const CreateArticle = async (
   }
 };
 
-export const DeleteArticle = async (docRef, EncheresRef, setOpen, refresh) => {
-  // const docRef = doc(db, "Articles", articleId);
-  // const EncheresRef = query(
-  //   collection(db, "Encheres"),
-  //   where("id_articles", "==", articleId)
-  // );
+export const UpdateArticle = async (idArticle, article, file) => {
+  const articleRef = doc(db, "Articles", idArticle);
+  //on récupère le document de l'article afin de récupérer les images et si on a file avec quelque chose on supprime les images de l'article pour mettre la nouvelle
+  if (file) {
+    const doc = await getDoc(articleRef);
+    doc.data().img_list.forEach(async (img) => {
+      deleteObject(ref(storage, `articles/${img}`))
+        .then(() => {
+          console.log("Article deleted successfully from storage");
+        })
+        .catch((error) => {
+          console.error("Error deleting Article:", error);
+        });
+    });
+    const fileName = dayjs().valueOf().toString();
+    const fileRef = ref(storage, `articles/${fileName}`);
+    const snapshot = await uploadBytes(fileRef, file);
+    const urlSnap = await getDownloadURL(snapshot.ref);
+    article.img_list = [];
+    article.img_list.push(fileName);
+  }
+  console.log(article);
+  await updateDoc(articleRef, {
+    ...article,
+  });
+  console.log("Document successfully updated!");
+};
+
+export const DeleteArticle = async (articleId, setOpen, refresh) => {
   console.log("Supprimer l'article");
+  const docRef = doc(db, "Articles", articleId);
+  const EncheresRef = query(
+    collection(db, "Encheres"),
+    where("id_articles", "==", articleId)
+  );
   const EncheresArticles = await getDocs(EncheresRef);
   const doc = await getDoc(docRef);
 
@@ -126,15 +151,16 @@ export const DeleteArticle = async (docRef, EncheresRef, setOpen, refresh) => {
       `Voulez-vous vraiment supprimer cet article et les ${EncheresArticles.size} enchères qui lui sont associées ?`
     )
   ) {
-    // delete l'article dans storage
-    doc.data().fileUrl &&
-      deleteObject(ref(storage, doc.data().fileUrl))
+    doc.data().img_list.forEach(async (img) => {
+      // getDownloadURL(ref(storage, `articles/${img}`)).then((url) => {
+      deleteObject(ref(storage, `articles/${img}`))
         .then(() => {
           console.log("Article deleted successfully from storage");
         })
         .catch((error) => {
           console.error("Error deleting Article:", error);
         });
+    });
     // delete le document de l'utilisateur dans la base de données Firestore
     await deleteDoc(docRef)
       .then(() => {

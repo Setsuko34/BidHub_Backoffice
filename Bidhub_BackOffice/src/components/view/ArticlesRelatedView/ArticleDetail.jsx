@@ -1,59 +1,21 @@
 import React, {useState, useEffect} from "react";
 import {Typography, Button, TextField, Box} from "@mui/material";
-import {DataGrid, GridToolbar} from "@mui/x-data-grid";
-import EditIcon from "@mui/icons-material/Edit";
+import {DataGrid} from "@mui/x-data-grid";
 import Appbar from "../../utils/AppBar";
-import {db} from "../../../config/Firebase";
-import {useNavigate, useParams} from "react-router-dom";
-import {
-  doc,
-  getDoc,
-  updateDoc,
-  collection,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
+import {useParams} from "react-router-dom";
 import * as articleLogic from "./ArticleLogic";
+import ArticleModal from "../../utils/ActionMenu/ArticleModal";
 
 const ArticleDetail = () => {
   const {idArticle} = useParams();
-  const [isEditing, setIsEditing] = useState(false);
-  const articleRef = doc(db, "Articles", idArticle);
-  const encheresRef = query(
-    collection(db, "Encheres"),
-    where("id_articles", "==", idArticle)
-  );
+  const [loading, setLoading] = useState(true);
   const [article, setArticle] = useState({});
   const [encheres, setEncheres] = useState([]);
   const [creator, setCreator] = useState({}); //[creator, setCreator
 
   useEffect(() => {
-    articleLogic.GetInfo(
-      articleRef,
-      encheresRef,
-      setArticle,
-      setEncheres,
-      setCreator
-    );
-  }, []);
-
-  const handleEdit = () => {
-    if (isEditing) {
-      setIsEditing(false);
-    } else {
-      setIsEditing(true);
-    }
-  };
-
-  const handleSave = () => {
-    setIsEditing(false);
-    // Enregistrer les modifications de l'article
-  };
-
-  const handleChange = (e) => {
-    setArticle({...article, [e.target.name]: e.target.value});
-  };
+    articleLogic.GetInfo(idArticle, setArticle, setEncheres, setCreator);
+  }, [idArticle]);
 
   return (
     <div>
@@ -67,35 +29,21 @@ const ArticleDetail = () => {
         }}
       >
         <Typography variant="h4">{article.title}</Typography>
-        <Button variant="outlined" onClick={handleEdit}>
-          <EditIcon />
-          Modifier
-        </Button>
+        <ArticleModal
+          article={article}
+          setArticle={setArticle}
+          idArticle={idArticle}
+        />
       </Box>
-      {isEditing ? (
-        <div>
-          <TextField
-            name="description"
-            label="Description"
-            value={article.description}
-            onChange={handleChange}
-          />
-
-          <Button variant="contained" onClick={handleSave}>
-            Enregistrer
-          </Button>
-        </div>
-      ) : (
-        <div>
-          <Typography>
-            Date et heure de fin:{" "}
-            {article.date_heure_fin?.toDate()?.toLocaleString()}
-          </Typography>
-          <Typography>Description: {article.description}</Typography>
-          <Typography>Createur : {creator.username}</Typography>
-          <Typography>Prix de départ: {article.prix_depart}</Typography>
-        </div>
-      )}
+      <div>
+        <Typography>
+          Date et heure de fin:{" "}
+          {article.date_heure_fin?.toDate()?.toLocaleString()}
+        </Typography>
+        <Typography>Description: {article.description}</Typography>
+        <Typography>Createur : {creator.username}</Typography>
+        <Typography>Prix de départ: {article.prix_depart}</Typography>
+      </div>
       {encheres.length > 0 ? (
         <Box>
           <Typography>encheres</Typography>

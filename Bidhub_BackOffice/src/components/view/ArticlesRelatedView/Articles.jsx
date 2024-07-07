@@ -9,7 +9,7 @@ import ArticlesActionsMenu from "../../utils/ActionMenu/ArticlesActionsMenu";
 import {Grid} from "react-loader-spinner";
 import Addicon from "@mui/icons-material/Add";
 import {getAllArticles} from "./ArticleLogic";
-import AddArticleModal from "../../utils/ActionMenu/AddArticleModal";
+import ArticleModal from "../../utils/ActionMenu/ArticleModal";
 
 const Articles = () => {
   const [Articles, setArticles] = useState([]);
@@ -81,7 +81,7 @@ const Articles = () => {
       <Appbar position="static" user={auth.currentUser} />
       <Box className="TitlewithButton">
         <Typography variant="h4">Liste des Articles</Typography>
-        <AddArticleModal user={auth.currentUser} refresh={setLoading} />
+        <ArticleModal user={auth.currentUser} refresh={setLoading} />
       </Box>
 
       <Box>

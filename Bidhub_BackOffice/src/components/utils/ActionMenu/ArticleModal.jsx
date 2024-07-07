@@ -1,46 +1,72 @@
 import React, {useState, useEffect} from "react";
 import {Modal, Button, TextField} from "@mui/material";
 import Addicon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import {DateTimePicker} from "@mui/x-date-pickers/DateTimePicker";
 import {LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
-import {CreateArticle} from "../../view/ArticlesRelatedView/ArticleLogic";
+import {
+  CreateArticle,
+  UpdateArticle,
+} from "../../view/ArticlesRelatedView/ArticleLogic";
 
 dayjs.locale("fr");
 dayjs().format("DD/MM/YYYY HH:mm:ss");
 
-const AddArticleModal = ({user, refresh, idarticle}) => {
-  //   const classes = useStyles();
+const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [prixDepart, setPrixDepart] = useState(0);
   const [description, setDescription] = useState("");
   const [endDate, setEndDate] = useState(dayjs());
   const [file, setFile] = useState(null);
+  const [articleValue, setArticleValue] = useState({
+    title: title,
+    description: description,
+    prix_depart: prixDepart,
+    date_heure_fin: endDate,
+    img_list: [],
+  });
+  useEffect(() => {
+    if (
+      article &&
+      article.title &&
+      article.description &&
+      article.prix_depart &&
+      article.date_heure_fin
+    ) {
+      console.log(article.id);
+      setTitle(article.title);
+      setDescription(article.description);
+      setPrixDepart(article.prix_depart);
+      setEndDate(dayjs(article.date_heure_fin.toDate()));
+    }
+  }, [article]);
 
   useEffect(() => {
-    if (idarticle) {
-      //TODO : set values et le récuperer avec firebase et les afficher dans les champs
-      setTitle(idarticle.title);
-      setDescription(idarticle.description);
-      setPrixDepart(idarticle.prix_depart);
-      setEndDate(dayjs(idarticle.date_heure_fin));
-    }
-  }, [idarticle]);
-
+    setArticleValue({
+      title: title,
+      description: description,
+      prix_depart: Number(prixDepart),
+      date_heure_fin: dayjs(endDate).toDate(),
+      img_list: [],
+    });
+  }, [title, description, prixDepart, endDate]);
   const handleOpen = () => {
     setOpen(true);
   };
 
   const handleClose = () => {
+    setFile(null);
     setOpen(false);
   };
 
   const handleTitleChange = (event) => {
     setTitle(event.target.value);
+    console.log("articleValue", articleValue);
   };
 
   const handleDescriptionChange = (event) => {
@@ -81,13 +107,16 @@ const AddArticleModal = ({user, refresh, idarticle}) => {
     );
   };
   // TODO : faire le contenue de la fonction handleUpdateArticle a savoir, update l'article avec les nouvelles valeurs, supprimer l'ancien fichier et le remplacer par le nouveau
-  const handleUpdateArticle = async () => {};
+  const handleUpdateArticle = async () => {
+    console.log("Update article");
+    UpdateArticle(idArticle, articleValue, file);
+  };
 
   return (
     <div>
       <Button variant="outlined" color="primary" onClick={handleOpen}>
-        <Addicon />
-        Ajouter
+        {article ? <EditIcon /> : <Addicon />}
+        {article ? "Mettre à jour" : "Ajouter"}
       </Button>
       <Modal
         className="modal"
@@ -104,7 +133,7 @@ const AddArticleModal = ({user, refresh, idarticle}) => {
         >
           <h2 id="add-article-modal">Ajouter un Article</h2>
           <TextField
-            label="Title"
+            label="Titre de l'article"
             value={title}
             onChange={handleTitleChange}
             sx={{marginBottom: 3}}
@@ -140,7 +169,7 @@ const AddArticleModal = ({user, refresh, idarticle}) => {
             variant="contained"
             tabIndex={-1}
             startIcon={<CloudUploadIcon />}
-            sx={{marginBottom: 3}}
+            sx={{marginBottom: 2}}
           >
             Télécharger le fichier
             <input
@@ -150,13 +179,16 @@ const AddArticleModal = ({user, refresh, idarticle}) => {
               style={{display: "none"}}
             />
           </Button>
+          <span style={{marginBottom: 20, marginTop: 0}}>
+            {file ? file.name : "aucun fichier séléctionné"}
+          </span>
           <Button
             variant="contained"
             color="primary"
-            onClick={idarticle ? handleUpdateArticle : handleCreateArticle}
+            onClick={article ? handleUpdateArticle : handleCreateArticle}
             sx={{marginBottom: 3}}
           >
-            {idarticle ? "Sauvegarder" : "Créer l'article"}
+            {article ? "Sauvegarder" : "Créer l'article"}
           </Button>
         </div>
       </Modal>
@@ -164,4 +196,4 @@ const AddArticleModal = ({user, refresh, idarticle}) => {
   );
 };
 
-export default AddArticleModal;
+export default ArticleModal;
