@@ -9,7 +9,7 @@ import ArticlesActionsMenu from "../../utils/ActionMenu/ArticlesActionsMenu";
 import {Grid} from "react-loader-spinner";
 import Addicon from "@mui/icons-material/Add";
 import {getAllArticles} from "./ArticleLogic";
-import ArticleModal from "../../utils/ActionMenu/ArticleModal";
+import ArticleModal from "../../utils/Modals/ArticleModal";
 
 const Articles = () => {
   const [Articles, setArticles] = useState([]);

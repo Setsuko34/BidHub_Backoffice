@@ -22,13 +22,14 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
   const [prixDepart, setPrixDepart] = useState(0);
   const [description, setDescription] = useState("");
   const [endDate, setEndDate] = useState(dayjs());
+  const [imgList, setImgList] = useState([]);
   const [file, setFile] = useState(null);
   const [articleValue, setArticleValue] = useState({
     title: title,
     description: description,
     prix_depart: prixDepart,
     date_heure_fin: endDate,
-    img_list: [],
+    img_list: imgList,
   });
   useEffect(() => {
     if (
@@ -36,13 +37,15 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
       article.title &&
       article.description &&
       article.prix_depart &&
-      article.date_heure_fin
+      article.date_heure_fin &&
+      article.img_list
     ) {
       console.log(article.id);
       setTitle(article.title);
       setDescription(article.description);
       setPrixDepart(article.prix_depart);
       setEndDate(dayjs(article.date_heure_fin.toDate()));
+      setImgList(article.img_list);
     }
   }, [article]);
 
@@ -52,9 +55,9 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
       description: description,
       prix_depart: Number(prixDepart),
       date_heure_fin: dayjs(endDate).toDate(),
-      img_list: [],
+      img_list: imgList,
     });
-  }, [title, description, prixDepart, endDate]);
+  }, [title, description, prixDepart, endDate, imgList]);
   const handleOpen = () => {
     setOpen(true);
   };
@@ -109,6 +112,7 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
   // TODO : faire le contenue de la fonction handleUpdateArticle a savoir, update l'article avec les nouvelles valeurs, supprimer l'ancien fichier et le remplacer par le nouveau
   const handleUpdateArticle = async () => {
     console.log("Update article");
+    console.log("articleValue", articleValue);
     UpdateArticle(idArticle, articleValue, file);
   };
 
@@ -131,7 +135,9 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
             width: "50%",
           }}
         >
-          <h2 id="add-article-modal">Ajouter un Article</h2>
+          <h2 id="add-article-modal">
+            {article ? "Mettre à jour" : "Ajouter"} un Article
+          </h2>
           <TextField
             label="Titre de l'article"
             value={title}
