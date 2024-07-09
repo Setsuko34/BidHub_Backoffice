@@ -30,7 +30,6 @@ const AuthView = () => {
       await signInWithEmailAndPassword(auth, email, password).then(
         async (userCredential) => {
           var user = userCredential.user;
-          console.log(user);
           // Get user document from Firestore
           const userDoc = doc(db, "Utilisateurs", user.uid);
           const userSnapshot = await getDoc(userDoc);
@@ -77,7 +76,6 @@ const AuthView = () => {
         (userCredential) => {
           var user = userCredential.user;
           user.sendEmailVerification();
-          console.log(user);
           history("/accueil");
         }
       );

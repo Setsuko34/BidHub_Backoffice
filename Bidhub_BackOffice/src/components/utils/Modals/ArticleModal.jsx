@@ -23,6 +23,8 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
   const [description, setDescription] = useState("");
   const [endDate, setEndDate] = useState(dayjs());
   const [imgList, setImgList] = useState([]);
+  const [imgArray, setImgArray] = useState([]);
+  const [imgArrayName, setImgArrayName] = useState([]);
   const [file, setFile] = useState(null);
   const [articleValue, setArticleValue] = useState({
     title: title,
@@ -48,7 +50,6 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
       setImgList(article.img_list);
     }
   }, [article]);
-
   useEffect(() => {
     setArticleValue({
       title: title,
@@ -61,7 +62,6 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
   const handleOpen = () => {
     setOpen(true);
   };
-
   const handleClose = () => {
     setFile(null);
     setOpen(false);
@@ -71,24 +71,30 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
     setTitle(event.target.value);
     console.log("articleValue", articleValue);
   };
-
   const handleDescriptionChange = (event) => {
     setDescription(event.target.value);
   };
 
-  const handleImageChange = (event) => {
+  const handleArticleChange = (event) => {
     const file = event.target.files[0];
+    console.log(file);
     setFile(file);
+  };
+  const handleImagesChange = (event) => {
+    let array = Array.from(event.target.files);
+    setImgArray(array);
+
+    array.forEach(async (file) => {
+      setImgArrayName((prev) => [...prev, file.name]);
+    });
   };
 
   const handleEndDateChange = (event) => {
     setEndDate(event.target.value);
   };
-
   const handlePrixDepartChange = (event) => {
     setPrixDepart(event.target.value);
   };
-
   const handleCreateArticle = async () => {
     const article = {
       title,
@@ -100,8 +106,10 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
     CreateArticle(
       article,
       file,
+      imgArray,
       refresh,
       setTitle,
+      setImgArray,
       setDescription,
       setPrixDepart,
       setFile,
@@ -113,7 +121,7 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
   const handleUpdateArticle = async () => {
     console.log("Update article");
     console.log("articleValue", articleValue);
-    UpdateArticle(idArticle, articleValue, file);
+    UpdateArticle(idArticle, articleValue, file, imgArray, refresh, setOpen);
   };
 
   return (
@@ -177,11 +185,33 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
             startIcon={<CloudUploadIcon />}
             sx={{marginBottom: 2}}
           >
-            Télécharger le fichier
+            Télécharger les previews
+            <input
+              type="file"
+              multiple
+              accept="image/*, video/*, pdf/*, audio/*"
+              onChange={handleImagesChange}
+              style={{display: "none"}}
+            />
+          </Button>
+          <span style={{marginBottom: 20, marginTop: 0}}>
+            {imgArrayName != []
+              ? JSON.stringify(imgArrayName)
+              : "aucun fichiers séléctionné"}
+          </span>
+          <Button
+            component="label"
+            role={undefined}
+            variant="contained"
+            tabIndex={-1}
+            startIcon={<CloudUploadIcon />}
+            sx={{marginBottom: 2}}
+          >
+            Télécharger l'article
             <input
               type="file"
               accept="image/*, video/*, pdf/*, audio/*"
-              onChange={handleImageChange}
+              onChange={handleArticleChange}
               style={{display: "none"}}
             />
           </Button>

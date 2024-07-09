@@ -3,14 +3,10 @@ import Button from "@mui/material/Button";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import {auth} from "../../../config/Firebase";
-import {db} from "../../../config/Firebase";
 import {useNavigate} from "react-router-dom";
 import {DeleteArticle} from "../../view/ArticlesRelatedView/ArticleLogic";
-import {doc, collection, query, where} from "firebase/firestore";
 
 export default function ArticlesActionsMenu({articleId, refresh}) {
   const history = useNavigate();

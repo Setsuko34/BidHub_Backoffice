@@ -1,13 +1,10 @@
 import React, {useEffect, useState} from "react";
-import {Avatar, Chip, Box, Typography, Button} from "@mui/material";
+import {Chip, Box, Typography} from "@mui/material";
 import {DataGrid, GridToolbar} from "@mui/x-data-grid";
 import {auth} from "../../../config/Firebase";
 import Appbar from "../../utils/AppBar";
-import {db} from "../../../config/Firebase";
-import {collection, getDocs} from "firebase/firestore";
 import ArticlesActionsMenu from "../../utils/ActionMenu/ArticlesActionsMenu";
 import {Grid} from "react-loader-spinner";
-import Addicon from "@mui/icons-material/Add";
 import {getAllArticles} from "./ArticleLogic";
 import ArticleModal from "../../utils/Modals/ArticleModal";
 

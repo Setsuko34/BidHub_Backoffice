@@ -61,7 +61,6 @@ const Appbar = ({user}) => {
   };
 
   const handlePage = (page) => {
-    console.log(page);
     switch (page) {
       case "Articles":
         return handleArticles();

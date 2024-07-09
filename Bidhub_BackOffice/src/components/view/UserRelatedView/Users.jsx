@@ -3,10 +3,9 @@ import {Avatar} from "@mui/material";
 import {DataGrid, GridToolbar} from "@mui/x-data-grid";
 import {auth} from "../../../config/Firebase";
 import Appbar from "../../utils/AppBar";
-import {db} from "../../../config/Firebase";
-import {collection, getDocs} from "firebase/firestore";
 import UsersActionsMenu from "../../utils/ActionMenu/UsersActionsMenu";
 import {Grid} from "react-loader-spinner";
+import {GetAllUsers} from "./UsersLogic";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -44,25 +43,8 @@ const Users = () => {
   }));
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "Utilisateurs"));
-        const usersList = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setUsers(usersList);
-        setLoading(false);
-      } catch (error) {
-        console.error(
-          "Erreur lors de la récupération des utilisateurs:",
-          error
-        );
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
+    GetAllUsers(setUsers);
+    setLoading(false);
   }, []);
 
   if (loading) {
