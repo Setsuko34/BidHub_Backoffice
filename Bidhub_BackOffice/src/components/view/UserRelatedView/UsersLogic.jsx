@@ -1,5 +1,5 @@
 import {db} from "../../../config/Firebase";
-import {collection, getDocs} from "firebase/firestore";
+import {collection, getDocs, doc, getDoc} from "firebase/firestore";
 
 export const GetAllUsers = async (setUsers) => {
   try {
@@ -11,5 +11,15 @@ export const GetAllUsers = async (setUsers) => {
     setUsers(usersList);
   } catch (error) {
     console.error("Erreur lors de la récupération des utilisateurs:", error);
+  }
+};
+
+export const GetUser = async (id, setUser) => {
+  const userRef = doc(db, "Utilisateurs", id);
+  const docSnap = await getDoc(userRef);
+  if (docSnap.exists()) {
+    setUser(docSnap.data());
+  } else {
+    console.log("No such document!");
   }
 };

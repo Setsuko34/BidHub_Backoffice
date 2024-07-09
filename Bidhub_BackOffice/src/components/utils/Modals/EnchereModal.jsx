@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from "react";
-import {Modal, Button, TextField} from "@mui/material";
+import {Modal, Button, TextField, MenuItem} from "@mui/material";
 import Addicon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import dayjs from "dayjs";
@@ -8,44 +8,39 @@ import "dayjs/locale/fr";
 dayjs.locale("fr");
 dayjs().format("DD/MM/YYYY HH:mm:ss");
 
-const EnchereModal = ({
-  user,
-  refresh,
-  enchere,
-  setEnchere,
-  idEnchere,
-  idArticle,
-}) => {
+const EnchereModal = ({enchere, setEncheres, idEnchere}) => {
   const [open, setOpen] = useState(false);
   const [prix, setPrix] = useState(0);
   const [creaDate, setCreaDate] = useState(dayjs());
-  const [id_user, setIdUser] = useState(user.uid);
+  const [id_user, setIdUser] = useState();
   const [enchereValue, setEnchereValue] = useState({
-    date_enchere: creaDate,
-    id_article: idArticle,
-    id_user: id_user,
-    montant: prix,
+    date_enchere: dayjs(creaDate).toDate(),
+    id_article: "",
+    id_user: "",
+    montant: 0,
   });
   useEffect(() => {
     if (enchere) {
+      setEnchereValue({enchere});
+      setIdUser(enchere.id_user);
+      setPrix(enchere.montant);
+      setCreaDate(dayjs(enchere.date_enchere.toDate()));
       console.log(enchere);
     }
   }, [enchere]);
 
   useEffect(() => {
-    setArticleValue({
+    setEnchereValue({
       date_enchere: dayjs(creaDate).toDate(),
-      id_article: idArticle,
       id_user: id_user,
       montant: Number(prix),
     });
-  }, [creaDate, idArticle, id_user, prix]);
+  }, [creaDate, id_user, prix]);
 
   const handleOpen = () => {
     setOpen(true);
   };
   const handleClose = () => {
-    setFile(null);
     setOpen(false);
   };
 
@@ -62,16 +57,29 @@ const EnchereModal = ({
   };
   const handleUpdateEnchere = async () => {
     console.log("Update Enchere");
-    // console.log("articleValue", articleValue);
-    // UpdateArticle(idArticle, articleValue, file, imgArray, refresh, setOpen);
+    console.log("enchereValue", enchereValue);
+    // UpdateEnchere(idEnchere, enchereValue, refresh, setOpen);
   };
 
   return (
     <div>
-      <Button variant="outlined" color="primary" onClick={handleOpen}>
-        {enchere ? <EditIcon /> : <Addicon />}
-        {enchere ? "Mettre à jour" : "Ajouter"}
-      </Button>
+      {enchere ? (
+        <MenuItem
+          variant="contained"
+          color="primary"
+          onClick={handleOpen}
+          disableRipple
+        >
+          <EditIcon />
+          Modifier
+        </MenuItem>
+      ) : (
+        <Button variant="outlined" color="primary" onClick={handleOpen}>
+          <Addicon />
+          Ajouter
+        </Button>
+      )}
+
       <Modal
         className="modal"
         open={open}

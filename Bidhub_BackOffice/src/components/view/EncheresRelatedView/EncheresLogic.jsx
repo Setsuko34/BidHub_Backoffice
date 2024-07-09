@@ -14,24 +14,26 @@ import {ref, uploadBytes, getDownloadURL, deleteObject} from "firebase/storage";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 
-export const GetEncheres = async (idArticle, setEncheres) => {
+export const GetEncheres = async ({idArticle}, setEncheres) => {
   console.log("Get Encheres");
-  console.log(idArticle);
-  const encheresRef = query(
-    collection(db, "Encheres"),
-    where("id_article", "==", idArticle)
-  );
-  const docSnap = await getDocs(encheresRef);
-  console.log("eee", docSnap);
-  if (docSnap.docs.length > 0) {
-    console.log(
-      "Document data:",
-      docSnap.docs.map((doc) => doc.data())
+  try {
+    const encheresRef = query(
+      collection(db, "Encheres"),
+      where("id_article", "==", idArticle)
     );
-    const a = docSnap.docs.map((doc) => doc.data());
-    console.log("zzzzzz", a);
+    const docSnap = await getDocs(encheresRef);
     setEncheres(docSnap.docs.map((doc) => doc.data()));
-  } else {
-    console.log("No such document!");
+  } catch (error) {
+    console.error("Erreur lors de la récupération des enchères:", error);
   }
+};
+
+export const DeleteEnchere = async (encheresRef) => {
+  await deleteDoc(encheresRef)
+    .then(() => {
+      console.log("Enchère supprimée avec succès");
+    })
+    .catch((error) => {
+      console.error("Erreur lors de la suppression de l'enchère:", error);
+    });
 };

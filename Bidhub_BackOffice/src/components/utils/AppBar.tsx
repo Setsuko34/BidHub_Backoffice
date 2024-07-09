@@ -89,7 +89,7 @@ const Appbar = ({user}) => {
         <Toolbar disableGutters>
           <Box
             component="img"
-            src="./src/assets/images/logo_encore.png"
+            src="https://firebasestorage.googleapis.com/v0/b/bidhub-56b3f.appspot.com/o/utils%2Flogo_encore.png?alt=media&token=43f40d0c-3391-4519-858d-08a7924f74b9"
             alt="Logo"
             sx={{
               display: {xs: "none", md: "flex"},

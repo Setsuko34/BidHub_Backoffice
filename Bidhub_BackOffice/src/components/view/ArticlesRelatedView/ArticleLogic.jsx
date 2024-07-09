@@ -13,6 +13,8 @@ import {db, storage} from "../../../config/Firebase";
 import {ref, uploadBytes, getDownloadURL, deleteObject} from "firebase/storage";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
+import {DeleteEnchere} from "../EncheresRelatedView/EncheresLogic";
+import {GetUser} from "../UserRelatedView/UsersLogic";
 
 export const getAllArticles = async (setArticles, setLoading) => {
   try {
@@ -30,36 +32,15 @@ export const getAllArticles = async (setArticles, setLoading) => {
   }
 };
 
-export const GetInfo = async (
-  idArticle,
-  setArticle,
-  setEncheres,
-  setCreator
-) => {
+export const GetInfo = async (idArticle, setArticle, setCreator) => {
   const articleRef = doc(db, "Articles", idArticle);
-  const encheresRef = query(
-    collection(db, "Encheres"),
-    where("id_article", "==", idArticle)
-  );
   const docSnap = await getDoc(articleRef);
-  const encheresSnap = await getDocs(encheresRef);
   if (docSnap.exists()) {
-    console.log("Document data:", docSnap.data());
-    console.log(
-      "encheres data:",
-      encheresSnap.docs.map((doc) => doc.data())
-    );
-
     setArticle(docSnap.data());
-    setEncheres(encheresSnap.docs.map((doc) => doc.data()));
   } else {
-    // doc.data() will be undefined in this case
     console.log("No such document!");
   }
-  const creatorRef = doc(db, "Utilisateurs", docSnap.data().id_user);
-  const creatorSnap = await getDoc(creatorRef);
-  setCreator(creatorSnap.data());
-  console.log("creator data:", creatorSnap.data());
+  GetUser(docSnap.data().id_user, setCreator);
 };
 
 export const CreateArticle = async (
@@ -86,7 +67,7 @@ export const CreateArticle = async (
       url.push(urlSnap);
     });
 
-    // Upload de l'article
+    // Upload article
     const ArtName = dayjs().valueOf().toString();
     const articleRef = ref(storage, `articles/article/${ArtName}`);
     const snapshotArt = await uploadBytes(articleRef, file);
@@ -231,14 +212,4 @@ export const DeleteArticle = async (articleId, setOpen, refresh) => {
     setOpen(false);
     refresh(true);
   }
-};
-
-export const DeleteEnchere = async (encheresRef) => {
-  await deleteDoc(encheresRef)
-    .then(() => {
-      console.log("Enchère supprimée avec succès");
-    })
-    .catch((error) => {
-      console.error("Erreur lors de la suppression de l'enchère:", error);
-    });
 };

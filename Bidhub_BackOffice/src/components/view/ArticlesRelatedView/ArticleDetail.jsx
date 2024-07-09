@@ -16,20 +16,19 @@ import ArticleModal from "../../utils/Modals/ArticleModal";
 import {Carousel} from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import {Grid} from "react-loader-spinner";
+import EncheresList from "../EncheresRelatedView/EncheresList";
 // requires a loader
 
 const ArticleDetail = () => {
   const {idArticle} = useParams();
   const [loading, setLoading] = useState(true);
   const [article, setArticle] = useState({});
-  const [encheres, setEncheres] = useState([]);
   const [creator, setCreator] = useState({}); //[creator, setCreator
 
   useEffect(() => {
-    articleLogic.GetInfo(idArticle, setArticle, setEncheres, setCreator);
+    articleLogic.GetInfo(idArticle, setArticle, setCreator);
     setLoading(false);
   }, [idArticle]);
-
   if (loading) {
     return (
       <div className="page-centered">
@@ -75,7 +74,7 @@ const ArticleDetail = () => {
           );
         })}
       </Carousel>
-      <Card sx={{maxWidth: "100%", marginTop: 3}}>
+      <Card sx={{maxWidth: "100%", marginY: 3}}>
         <CardContent>
           <Typography gutterBottom variant="h5" component="div">
             {article.title}
@@ -104,32 +103,7 @@ const ArticleDetail = () => {
           </Link>
         </CardContent>
       </Card>
-      {encheres.length > 0 ? (
-        <Box>
-          <Typography> Encheres</Typography>
-          <DataGrid
-            columns={[
-              {field: "date_enchere", headerName: "Date enchère", flex: 1},
-              {field: "id_user", headerName: "ID utilisateur", flex: 1},
-              {field: "montant", headerName: "Montant", flex: 1},
-            ]}
-            rows={encheres}
-            getRowId={(row) =>
-              row.id_articles + row.id_user + row.date_enchere.seconds
-            }
-            // assuming this combination is unique for each row
-            pageSize={5}
-            slots={{toolbar: GridToolbar}}
-            slotProps={{
-              toolbar: {
-                showQuickFilter: true,
-              },
-            }}
-          />
-        </Box>
-      ) : (
-        <Typography>Aucune enchère pour cet article</Typography>
-      )}
+      <EncheresList idArticle={idArticle} />
     </div>
   );
 };
