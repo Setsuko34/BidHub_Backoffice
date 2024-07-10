@@ -2,6 +2,7 @@ import {db} from "../../../config/Firebase";
 import {collection, getDocs, doc, getDoc} from "firebase/firestore";
 
 export const GetAllUsers = async (setUsers) => {
+  console.log("Get All Users");
   try {
     const querySnapshot = await getDocs(collection(db, "Utilisateurs"));
     const usersList = querySnapshot.docs.map((doc) => ({

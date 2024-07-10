@@ -29,22 +29,6 @@ const ArticleDetail = () => {
     articleLogic.GetInfo(idArticle, setArticle, setCreator);
     setLoading(false);
   }, [idArticle]);
-  if (loading) {
-    return (
-      <div className="page-centered">
-        <Grid
-          visible={true}
-          height="80"
-          width="80"
-          color="#FFA31A"
-          ariaLabel="grid-loading"
-          radius="12.5"
-          wrapperStyle={{}}
-          wrapperClass="grid-wrapper"
-        />
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -68,7 +52,7 @@ const ArticleDetail = () => {
       <Carousel showArrows={false} showThumbs={false} autoPlay>
         {article.img_list?.map((img, index) => {
           return (
-            <div>
+            <div key={index}>
               <img key={index} src={img} alt="img" style={{width: "25%"}} />
             </div>
           );

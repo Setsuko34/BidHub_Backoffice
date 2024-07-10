@@ -12,13 +12,29 @@ const Articles = () => {
   const [Articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const columns = [
-    {field: "id", headerName: "ID", flex: 1},
-    {field: "title", headerName: "Titre", flex: 1},
-    {field: "prix_depart", headerName: "Prix de départ", flex: 1},
+    {
+      field: "id",
+      headerName: "ID",
+      flex: 1,
+    },
+    {
+      field: "title",
+      headerName: "Titre",
+      flex: 1,
+    },
+    {
+      field: "prix_depart",
+      headerName: "Prix de départ",
+      flex: 1,
+      headerAlign: "center",
+      align: "center",
+    },
     {
       field: "status",
       headerName: "Statut",
       flex: 1,
+      headerAlign: "center",
+      align: "center",
       renderCell: (params) => (
         <Chip
           label={params.row.status}
@@ -31,8 +47,10 @@ const Articles = () => {
     },
     {
       field: "actions",
-      headerName: "Actions",
+      headerName: "",
       width: 300,
+      headerAlign: "center",
+      align: "center",
       renderCell: (params) => (
         <ArticlesActionsMenu
           articleId={params.row.actions}
@@ -56,23 +74,6 @@ const Articles = () => {
     getAllArticles(setArticles, setLoading);
   }, [loading]);
 
-  if (loading) {
-    return (
-      <div className="page-centered">
-        <Grid
-          visible={true}
-          height="80"
-          width="80"
-          color="#FFA31A"
-          ariaLabel="grid-loading"
-          radius="12.5"
-          wrapperStyle={{}}
-          wrapperClass="grid-wrapper"
-        />
-      </div>
-    );
-  }
-
   return (
     <div>
       <Appbar position="static" user={auth.currentUser} />
@@ -86,6 +87,7 @@ const Articles = () => {
           rows={rows}
           columns={columns}
           pageSize={5}
+          sx={{height: "80vh", width: "100%"}}
           slots={{toolbar: GridToolbar}}
           slotProps={{
             toolbar: {

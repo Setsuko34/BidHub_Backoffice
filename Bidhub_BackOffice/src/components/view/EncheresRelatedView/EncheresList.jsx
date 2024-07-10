@@ -16,7 +16,23 @@ const EncheresList = (idArticle) => {
   }, [idArticle]);
 
   if (encheres.length === 0) {
-    return <Typography>Aucune enchère pour cet article</Typography>;
+    return (
+      <Box>
+        <Box
+          sx={{
+            display: "flex",
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingY: 3,
+          }}
+        >
+          <Typography variant="h4">Enchères de l'article</Typography>
+          <EnchereModal setEncheres={setEncheres} idArticle={idArticle} />
+        </Box>
+        <Typography>Aucune enchère pour cet article</Typography>
+      </Box>
+    );
   }
 
   return (
@@ -31,23 +47,40 @@ const EncheresList = (idArticle) => {
         }}
       >
         <Typography variant="h4">Enchères de l'article</Typography>
-        <EnchereModal setEncheres={setEncheres} />
+        <EnchereModal setEncheres={setEncheres} idArticle={idArticle} />
       </Box>
       <DataGrid
         columns={[
-          {field: "date_enchere", headerName: "Date enchère", flex: 1},
+          {
+            field: "date_enchere",
+            headerName: "Date enchère",
+            flex: 1,
+            alignItems: "center",
+            renderCell: (params) => (
+              <Typography sx={{alignContent: "center", height: "100%"}}>
+                {" "}
+                {params.row.date_enchere.toDate().toLocaleString()}
+              </Typography>
+            ),
+          },
           {field: "id_user", headerName: "ID utilisateur", flex: 1},
-          {field: "montant", headerName: "Montant", flex: 1},
+          {
+            field: "montant",
+            headerName: "Montant",
+            headerAlign: "center",
+            flex: 1,
+            align: "center",
+          },
           {
             field: "actions",
-            headerName: "Actions",
             width: 300,
             align: "center",
             renderCell: (params) => (
               <EncheresActionsMenu
                 enchereId={params.row.id}
                 enchere={params.row}
-                refresh={setEncheres}
+                setEncheres={setEncheres}
+                idArticle={idArticle}
               />
             ),
           },
@@ -58,6 +91,7 @@ const EncheresList = (idArticle) => {
         }
         // assuming this combination is unique for each row
         pageSize={5}
+        sx={{height: "80vh", width: "100%"}}
         slots={{toolbar: GridToolbar}}
         slotProps={{
           toolbar: {

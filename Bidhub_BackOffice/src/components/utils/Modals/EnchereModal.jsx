@@ -1,37 +1,45 @@
 import React, {useState, useEffect} from "react";
-import {Modal, Button, TextField, MenuItem} from "@mui/material";
+import {Modal, Button, TextField, MenuItem, Autocomplete} from "@mui/material";
 import Addicon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
+import {GetAllUsers} from "../../view/UserRelatedView/UsersLogic";
+import {
+  CreateEnchere,
+  UpdateEnchere,
+} from "../../view/EncheresRelatedView/EncheresLogic";
 
 dayjs.locale("fr");
 dayjs().format("DD/MM/YYYY HH:mm:ss");
 
-const EnchereModal = ({enchere, setEncheres, idEnchere}) => {
+const EnchereModal = ({enchere, idEnchere, setEncheres, idArticle}) => {
   const [open, setOpen] = useState(false);
   const [prix, setPrix] = useState(0);
   const [creaDate, setCreaDate] = useState(dayjs());
   const [id_user, setIdUser] = useState();
+  const [users, setUsers] = useState([]);
+
   const [enchereValue, setEnchereValue] = useState({
     date_enchere: dayjs(creaDate).toDate(),
-    id_article: "",
+    id_article: idArticle,
     id_user: "",
     montant: 0,
   });
   useEffect(() => {
-    if (enchere) {
+    if (enchere && idEnchere) {
       setEnchereValue({enchere});
       setIdUser(enchere.id_user);
       setPrix(enchere.montant);
       setCreaDate(dayjs(enchere.date_enchere.toDate()));
-      console.log(enchere);
     }
+    GetAllUsers(setUsers);
   }, [enchere]);
 
   useEffect(() => {
     setEnchereValue({
       date_enchere: dayjs(creaDate).toDate(),
+      id_article: idArticle.idArticle,
       id_user: id_user,
       montant: Number(prix),
     });
@@ -39,9 +47,17 @@ const EnchereModal = ({enchere, setEncheres, idEnchere}) => {
 
   const handleOpen = () => {
     setOpen(true);
+    console.log(users);
   };
   const handleClose = () => {
     setOpen(false);
+    setEnchereValue({
+      date_enchere: dayjs().toDate(),
+      id_user: "",
+      montant: 0,
+    });
+    setPrix(0);
+    setIdUser("");
   };
 
   const handlePrixChange = (event) => {
@@ -54,11 +70,15 @@ const EnchereModal = ({enchere, setEncheres, idEnchere}) => {
 
   const handleCreateEnchere = async () => {
     console.log("Create Enchere");
+    console.log("enchereValue", enchereValue);
+    CreateEnchere(enchereValue, setEncheres, setOpen);
+    handleClose();
   };
   const handleUpdateEnchere = async () => {
     console.log("Update Enchere");
     console.log("enchereValue", enchereValue);
-    // UpdateEnchere(idEnchere, enchereValue, refresh, setOpen);
+    UpdateEnchere(idEnchere, enchereValue, setEncheres);
+    handleClose();
   };
 
   return (
@@ -105,6 +125,20 @@ const EnchereModal = ({enchere, setEncheres, idEnchere}) => {
             sx={{marginBottom: 3}}
           />
 
+          <Autocomplete
+            id="user"
+            options={users}
+            getOptionLabel={(option) => option.username}
+            getOptionKey={(option) => option.id}
+            value={users.find((user) => user.id === id_user)}
+            sx={{marginBottom: 3}}
+            onChange={(event, newValue) => {
+              setIdUser(newValue.id);
+            }}
+            renderInput={(params) => (
+              <TextField {...params} label="Utilisateur" />
+            )}
+          />
           <Button
             variant="contained"
             color="primary"

@@ -42,7 +42,6 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
       article.date_heure_fin &&
       article.img_list
     ) {
-      console.log(article.id);
       setTitle(article.title);
       setDescription(article.description);
       setPrixDepart(article.prix_depart);
@@ -69,7 +68,6 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
 
   const handleTitleChange = (event) => {
     setTitle(event.target.value);
-    console.log("articleValue", articleValue);
   };
   const handleDescriptionChange = (event) => {
     setDescription(event.target.value);

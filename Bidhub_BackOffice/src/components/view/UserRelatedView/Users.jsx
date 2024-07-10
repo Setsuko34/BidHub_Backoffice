@@ -47,30 +47,6 @@ const Users = () => {
     setLoading(false);
   }, []);
 
-  if (loading) {
-    return (
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Grid
-          visible={true}
-          height="80"
-          width="80"
-          color="#FFA31A"
-          ariaLabel="grid-loading"
-          radius="12.5"
-          wrapperStyle={{}}
-          wrapperClass="grid-wrapper"
-        />
-      </div>
-    );
-  }
-
   return (
     <div>
       <Appbar position="static" user={auth.currentUser} />

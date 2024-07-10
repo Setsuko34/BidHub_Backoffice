@@ -4,14 +4,17 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import DeleteIcon from "@mui/icons-material/Delete";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import {DeleteArticle} from "../../view/ArticlesRelatedView/ArticleLogic";
 import EnchereModal from "../Modals/EnchereModal";
+import {DeleteEnchere} from "../../view/EncheresRelatedView/EncheresLogic";
 
-export default function EncheresActionsMenu({enchereId, enchere, refresh}) {
+export default function EncheresActionsMenu({
+  enchereId,
+  enchere,
+  setEncheres,
+  idArticle,
+}) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
-
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
@@ -24,7 +27,7 @@ export default function EncheresActionsMenu({enchereId, enchere, refresh}) {
     setOpen(false);
   };
   const handleDelete = async () => {
-    DeleteArticle(articleId, setOpen, refresh);
+    DeleteEnchere(enchereId, idArticle.idArticle, setEncheres, setOpen);
   };
 
   return (
@@ -48,8 +51,9 @@ export default function EncheresActionsMenu({enchereId, enchere, refresh}) {
       >
         <EnchereModal
           enchere={enchere}
-          setEncheres={refresh}
+          setEncheres={setEncheres}
           idEnchere={enchereId}
+          idArticle={idArticle}
         />
         <MenuItem
           variant="contained"
