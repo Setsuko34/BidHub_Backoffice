@@ -37,27 +37,27 @@ exports.sendTestNotification = functions.https.onRequest(async (req, res) => {
     }
   });
 });
-
-// export const sendNewEnchereNotification = onValueCreated(
-//import {onValueCreated} from "firebase-functions/v2/database";
-//   db.ref("/encheres/{enchereId}").onCreate(async (snapshot, context) => {
-//     const enchere = snapshot.val();
-//     const article = await db
-//       .collection("articles")
-//       .doc(enchere.idArticle)
-//       .get();
-//     const user = await auth.getUser(article.data().id_user);
-//     const message = {
-//       notification: {
-//         title: "Nouvelle enchère",
-//         body: `Nouvelle enchère sur ${article.data().title}`,
-//         image: article.data().img_list[0],
-//       },
-//       token: user.tokens,
-//     };
-//     await messaging.send(message);
-//   })
-// );
+// TODO : lors de la création d'un user inserer son token dans la collection users afin de pouvoir le recuperer lors de l'envoi de notification
+// TODO : voir dans l'app mobile dans handleMessage de firebase_api la redirection vers la page de l'article concerné par la notification
+exports.sendNewEnchereNotification = functions.firestore
+  .document("/encheres/{enchereId}")
+  .onCreate(async (snapshot, context) => {
+    const enchere = snapshot.val();
+    const article = await db
+      .collection("articles")
+      .doc(enchere.idArticle)
+      .get();
+    const user = await auth.getUser(article.data().id_user);
+    const message = {
+      notification: {
+        title: "Nouvelle enchère",
+        body: `Nouvelle enchère sur ${article.data().title}`,
+        image: article.data().img_list[0],
+      },
+      token: user.tokens,
+    };
+    await messaging.send(message);
+  });
 
 // exports.listUsers = functions.https.onCall(async () => {
 //   try {
