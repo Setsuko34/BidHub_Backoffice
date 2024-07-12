@@ -8,25 +8,13 @@ import {getAllArticles} from "./ArticleLogic";
 import ArticleModal from "../../utils/Modals/ArticleModal";
 import axios from "axios";
 
-const sendPushNotification = async (deviceToken, message) => {
-  const url = "https://fcm.googleapis.com/fcm/send";
-  const body = {
-    to: deviceToken,
-    notification: {
-      title: message.title,
-      body: message.body,
-    },
-  };
-  const headers = {
-    Authorization: "key=35c24cbf2f192ba0afac9bd1819016e3cd1f8566",
-    "Content-Type": "application/json",
-  };
-
+const sendPushNotification = async () => {
   try {
-    const response = await axios.post(url, body, {headers});
-    console.log("Notification sent successfully:", response.data);
+    await axios.get(
+      "https://us-central1-bidhub-56b3f.cloudfunctions.net/sendTestNotification"
+    );
   } catch (error) {
-    console.error("Error sending notification:", error);
+    console.error(error);
   }
 };
 
@@ -112,9 +100,9 @@ const Articles = () => {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => sendPushNotification(deviceToken, message)}
+          onClick={() => sendPushNotification()}
         >
-          Test d'envoi de notif
+          Test
         </Button>
       </Box>
 
