@@ -14,10 +14,8 @@ import {doc, getDoc} from "firebase/firestore";
 const AuthView = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isSignIn, setIsSignIn] = useState(true);
   const history = useNavigate();
 
   const handleLogin = async () => {
@@ -62,43 +60,6 @@ const AuthView = () => {
     }
   };
 
-  const handleSignup = async () => {
-    if (!email || !password || !passwordConfirm) {
-      setError("Veuillez remplir tous les champs");
-      return;
-    } else if (password !== passwordConfirm) {
-      setError("Les mots de passe ne correspondent pas");
-      return;
-    }
-    setLoading(true);
-    try {
-      await createUserWithEmailAndPassword(auth, email, password).then(
-        (userCredential) => {
-          var user = userCredential.user;
-          user.sendEmailVerification();
-          history("/accueil");
-        }
-      );
-    } catch (error) {
-      if (error.code === "auth/email-already-in-use") {
-        setError("Cet email est déjà utilisé");
-      } else if (error.code === "auth/invalid-email") {
-        setError("Cet email est invalide");
-      } else if (error.code === "auth/weak-password") {
-        setError("Le mot de passe doit contenir au moins 6 caractères");
-      } else if (error.code === "auth/network-request-failed") {
-        setError("Erreur de connexion, veuillez réessayer plus tard");
-      } else if (error.code === "auth/too-many-requests") {
-        setError("Trop de tentatives, veuillez réessayer plus tard");
-      } else if (error.code === "auth/operation-not-allowed") {
-        setError("Les inscriptions ne sont pas autorisées pour le moment");
-      }
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleGoogleLogin = () => {
     const provider = new app.auth.GoogleAuthProvider();
     app.auth().signInWithPopup(provider);
@@ -136,39 +97,14 @@ const AuthView = () => {
           style={styles.input}
         />
       </FormControl>
-      {!isSignIn && (
-        <FormControl>
-          <InputLabel htmlFor="passwordConfirm">
-            Confirmer le mot de passe
-          </InputLabel>
-          <Input
-            type="password"
-            placeholder="Mot de passe"
-            value={passwordConfirm}
-            onChange={(e) => setPasswordConfirm(e.target.value)}
-            autoComplete="on"
-            variant="filled"
-            style={styles.input}
-          />
-        </FormControl>
-      )}
 
       {error && <p style={{color: "red"}}>{error}</p>}
-      {isSignIn ? (
-        <div style={{display: "flex", flexDirection: "column"}}>
-          <button onClick={handleLogin} style={styles.button}>
-            Se connecter
-          </button>
-          <a onClick={() => setIsSignIn(false)}>Pas encore de compte ?</a>
-        </div>
-      ) : (
-        <div style={{display: "flex", flexDirection: "column"}}>
-          <button onClick={handleSignup} style={styles.button}>
-            S'inscrire
-          </button>
-          <a onClick={() => setIsSignIn(true)}>Déjà un compte ?</a>
-        </div>
-      )}
+
+      <div style={{display: "flex", flexDirection: "column"}}>
+        <button onClick={handleLogin} style={styles.button}>
+          Se connecter
+        </button>
+      </div>
     </Container>
   );
 };

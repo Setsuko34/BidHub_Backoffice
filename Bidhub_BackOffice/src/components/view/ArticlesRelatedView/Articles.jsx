@@ -1,12 +1,41 @@
 import React, {useEffect, useState} from "react";
-import {Chip, Box, Typography} from "@mui/material";
+import {Chip, Box, Typography, Button} from "@mui/material";
 import {DataGrid, GridToolbar} from "@mui/x-data-grid";
 import {auth} from "../../../config/Firebase";
 import Appbar from "../../utils/AppBar";
 import ArticlesActionsMenu from "../../utils/ActionMenu/ArticlesActionsMenu";
-import {Grid} from "react-loader-spinner";
 import {getAllArticles} from "./ArticleLogic";
 import ArticleModal from "../../utils/Modals/ArticleModal";
+import axios from "axios";
+
+const sendPushNotification = async (deviceToken, message) => {
+  const url = "https://fcm.googleapis.com/fcm/send";
+  const body = {
+    to: deviceToken,
+    notification: {
+      title: message.title,
+      body: message.body,
+    },
+  };
+  const headers = {
+    Authorization: "key=35c24cbf2f192ba0afac9bd1819016e3cd1f8566",
+    "Content-Type": "application/json",
+  };
+
+  try {
+    const response = await axios.post(url, body, {headers});
+    console.log("Notification sent successfully:", response.data);
+  } catch (error) {
+    console.error("Error sending notification:", error);
+  }
+};
+
+// Exemple d'utilisation
+const deviceToken = "DEVICE_TOKEN_HERE";
+const message = {
+  title: "Nouveau message",
+  body: "Vous avez un nouveau message dans votre application.",
+};
 
 const Articles = () => {
   const [Articles, setArticles] = useState([]);
@@ -80,6 +109,13 @@ const Articles = () => {
       <Box className="TitlewithButton">
         <Typography variant="h4">Liste des Articles</Typography>
         <ArticleModal user={auth.currentUser} refresh={setLoading} />
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => sendPushNotification(deviceToken, message)}
+        >
+          Test d'envoi de notif
+        </Button>
       </Box>
 
       <Box>
