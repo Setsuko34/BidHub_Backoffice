@@ -1,7 +1,6 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const serviceAccount = require("./bidhub-56b3f-35c24cbf2f19.json");
-const cors = require("cors")({origin: true}); // Import and configure CORS
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -11,77 +10,111 @@ const db = admin.firestore();
 const storage = admin.storage();
 const messaging = admin.messaging();
 
-exports.sendTestNotification = functions.https.onRequest(async (req, res) => {
-  cors(req, res, async () => {
-    console.log("Request body:", req.body); // Log request body
+// exports.sendNotification = functions.https.onRequest(async (req, res) => {
+//   cors(req, res, async () => {
+//     console.log("Request body:", req.body); // Log request body
 
-    // Message de notification
-    const deviceToken =
-      "fIr7r_4nSYKNcL2C02HxRT:APA91bH5z5Evaz_7RV6PJFVb1urjMBiAwlm07TPVy3luOYSwymiocXH5c-TcQJrTERfsuUqmXwbhvQ5hGw9PEdbfxgX-xRD-GL3PF9lFSjA_UZmAlYJkDnte_iAxymowxDgyh9mmuSRf";
+//     // Message de notification
+//     const deviceToken = req.body.deviceToken;
+//     const message = {
+//       notification: {
+//         title: req.body.title,
+//         body: req.body.body,
+//       },
+//       token: deviceToken,
+//     };
+
+//     // Envoyer la notification
+//     try {
+//       const response = await admin.messaging().send(message);
+//       console.log("Notification sent successfully:", response); // Log success
+//       res.status(200).send("Notification sent successfully!");
+//     } catch (error) {
+//       console.error("Error sending notification:", error);
+//       res.status(500).send("Error sending notification");
+//     }
+//   });
+// });
+// TODO : voir dans l'app mobile dans handleMessage de firebase_api la redirection vers la page de l'article concerné par la notification
+// TODO : voir pourquoi sendEachForMulticast ne fonctionne pas et surtout pourquoi TokenList est vide après le for.
+exports.sendNewEnchereNotificationProprietaire = functions.firestore
+  .document("/Encheres/{enchereId}")
+  .onCreate(async (snapshot, context) => {
+    const enchere = snapshot.data();
+    const article = await db
+      .collection("Articles")
+      .doc(enchere.id_article)
+      .get();
+    const user = await db
+      .collection("Utilisateurs")
+      .doc(article.data().id_user)
+      .get();
     const message = {
       notification: {
-        title: "Nouveau message",
-        body: "Vous avez un nouveau message dans votre application.",
+        title: "Tu as reçu une nouvelle enchère",
+        body: `Nouvelle enchère de ${enchere.montant}€ sur ton article : ${
+          article.data().title
+        }`,
       },
-      token: deviceToken,
+      token: user.data().fcmToken,
     };
 
     // Envoyer la notification
     try {
       const response = await admin.messaging().send(message);
       console.log("Notification sent successfully:", response); // Log success
-      res.status(200).send("Notification sent successfully!");
+      return "Notification sent successfully!";
     } catch (error) {
       console.error("Error sending notification:", error);
-      res.status(500).send("Error sending notification");
+      return "Error sending notification";
     }
   });
-});
-// TODO : lors de la création d'un user inserer son token dans la collection users afin de pouvoir le recuperer lors de l'envoi de notification
-// TODO : voir dans l'app mobile dans handleMessage de firebase_api la redirection vers la page de l'article concerné par la notification
-exports.sendNewEnchereNotification = functions.firestore
-  .document("/encheres/{enchereId}")
+
+exports.sendNewEnchereNotificationAcquereur = functions.firestore
+  .document("/Encheres/{enchereId}")
   .onCreate(async (snapshot, context) => {
-    const enchere = snapshot.val();
+    const enchere = snapshot.data();
+
     const article = await db
-      .collection("articles")
-      .doc(enchere.idArticle)
+      .collection("Articles")
+      .doc(enchere.id_article)
       .get();
-    const user = await auth.getUser(article.data().id_user);
+
+    const enchereSnapshot = await db
+      .collection("Encheres")
+      .where("id_article", "==", enchere.id_article)
+      .get();
+
+    if (!enchereSnapshot.empty) {
+      console.log("enchereSnapshot", enchereSnapshot.docs);
+    }
+    let TokenList = [];
+    enchereSnapshot.docs.forEach(async (doc) => {
+      const enchereData = doc.data();
+      const user = await db
+        .collection("Utilisateurs")
+        .doc(enchereData.id_user)
+        .get();
+
+      TokenList.push(user.data().fcmToken);
+    });
     const message = {
       notification: {
-        title: "Nouvelle enchère",
-        body: `Nouvelle enchère sur ${article.data().title}`,
-        image: article.data().img_list[0],
+        title: "Nouvelle enchère sur un article que tu voulais !!",
+        body: `Nouvelle enchère de ${enchere.montant}€ sur l'article : ${
+          article.data().title
+        } viens vite surenchérir !`,
       },
-      token: user.tokens,
+      token: TokenList,
     };
-    await messaging.send(message);
+
+    // Envoyer la notification
+    try {
+      const response = await admin.messaging().sendEachForMulticast(message);
+      console.log("Notification sent successfully:", response); // Log success
+      return "Notification sent successfully!";
+    } catch (error) {
+      console.error("Error sending notification:", error);
+      return "Error sending notification";
+    }
   });
-
-// exports.listUsers = functions.https.onCall(async () => {
-//   try {
-//     const users = await listAllUsers();
-//     return {users};
-//   } catch (error) {
-//     console.error("Error listing users:", error);
-//     throw new functions.https.HttpsError("internal", "Unable to list users");
-//   }
-// });
-
-// /**
-//  * Lists all users from Firebase Auth.
-//  *
-//  * @param {string} nextPageToken - The token for the next page of users.
-//  * @returns {Promise<Array>} A promise that resolves with an array of users.
-//  */
-// async function listAllUsers(nextPageToken) {
-//   const listUsersResult = await admin.auth().listUsers(1000, nextPageToken);
-//   const users = listUsersResult.users.map((user) => ({
-//     uid: user.uid,
-//     email: user.email,
-//     displayName: user.displayName,
-//     photoURL: user.photoURL,
-//   }));
-//   // ...
-// }
