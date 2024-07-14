@@ -222,6 +222,7 @@ exports.deleteUser = onRequest({cors: true}, async (req, res) => {
 });
 
 //TODO : fix la notifications de nouvelles encheres pour les Acquereurs
+//TODO : voir pourquoi quand un textField est vide dans la mise à jour d'un user il selectionne la modale et nous empeche donc d'écrire au clavier
 //TODO : notification lors de la suppression d'un article à toute les personnes aillant encheries dessus, voir si c'est possible avec un declencheur sur la table article
 //TODO : notification lors de l'atteinte de la date de fin de l'enchère à la personne ayant la meilleure enchère pour lui signalez sa victoire et donc qu'il peut télécharger l'article et payer
 //TODO : Fixer la création d'un article (voir pourquoi le imd_list n'est pas bien enregistré)

@@ -1,5 +1,12 @@
 import React, {useState, useEffect} from "react";
-import {Modal, Button, TextField, MenuItem} from "@mui/material";
+import {
+  Modal,
+  Button,
+  TextField,
+  MenuItem,
+  InputLabel,
+  Select,
+} from "@mui/material";
 import Addicon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import dayjs from "dayjs";
@@ -14,7 +21,7 @@ const UserModal = ({user, refresh}) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("user");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -181,12 +188,18 @@ const UserModal = ({user, refresh}) => {
             onChange={handleUsernameChange}
             sx={{marginBottom: 3}}
           />
-          <TextField
-            label="Statut"
+          <InputLabel id="Statut-label">Statut</InputLabel>
+          <Select
+            labelId="Statut-label"
+            id="Satut"
             value={status}
+            label="Statut"
             onChange={handleStatusChange}
             sx={{marginBottom: 3}}
-          />
+          >
+            <MenuItem value="admin">Admin</MenuItem>
+            <MenuItem value="user">User</MenuItem>
+          </Select>
 
           {!user ? (
             <TextField
