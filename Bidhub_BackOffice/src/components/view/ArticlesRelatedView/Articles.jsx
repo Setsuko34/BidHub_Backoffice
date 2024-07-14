@@ -8,23 +8,6 @@ import {getAllArticles} from "./ArticleLogic";
 import ArticleModal from "../../utils/Modals/ArticleModal";
 import axios from "axios";
 
-const sendPushNotification = async () => {
-  try {
-    await axios.get(
-      "https://us-central1-bidhub-56b3f.cloudfunctions.net/sendTestNotification"
-    );
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-// Exemple d'utilisation
-const deviceToken = "DEVICE_TOKEN_HERE";
-const message = {
-  title: "Nouveau message",
-  body: "Vous avez un nouveau message dans votre application.",
-};
-
 const Articles = () => {
   const [Articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -97,13 +80,6 @@ const Articles = () => {
       <Box className="TitlewithButton">
         <Typography variant="h4">Liste des Articles</Typography>
         <ArticleModal user={auth.currentUser} refresh={setLoading} />
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => sendPushNotification()}
-        >
-          Test
-        </Button>
       </Box>
 
       <Box>

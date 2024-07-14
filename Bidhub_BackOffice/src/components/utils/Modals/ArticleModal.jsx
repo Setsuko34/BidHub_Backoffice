@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from "react";
-import {Modal, Button, TextField} from "@mui/material";
+import {Modal, Button, TextField, Autocomplete} from "@mui/material";
 import Addicon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -8,6 +8,7 @@ import {LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
+import {GetAllUsers} from "../../view/UserRelatedView/UsersLogic";
 import {
   CreateArticle,
   UpdateArticle,
@@ -26,14 +27,18 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
   const [imgArray, setImgArray] = useState([]);
   const [imgArrayName, setImgArrayName] = useState([]);
   const [file, setFile] = useState(null);
+  const [id_user, setIdUser] = useState();
+  const [users, setUsers] = useState([]);
   const [articleValue, setArticleValue] = useState({
     title: title,
     description: description,
     prix_depart: prixDepart,
     date_heure_fin: endDate,
     img_list: imgList,
+    id_user: id_user,
   });
   useEffect(() => {
+    GetAllUsers(setUsers);
     if (
       article &&
       article.title &&
@@ -56,8 +61,9 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
       prix_depart: Number(prixDepart),
       date_heure_fin: dayjs(endDate).toDate(),
       img_list: imgList,
+      id_user: id_user,
     });
-  }, [title, description, prixDepart, endDate, imgList]);
+  }, [title, description, prixDepart, endDate, imgList, id_user]);
   const handleOpen = () => {
     setOpen(true);
   };
@@ -99,7 +105,7 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
       description,
       prixDepart,
       endDate,
-      id_user: user.uid,
+      id_user,
     };
     CreateArticle(
       article,
@@ -162,6 +168,20 @@ const ArticleModal = ({user, refresh, article, setArticle, idArticle}) => {
             onChange={handlePrixDepartChange}
             type="number"
             sx={{marginBottom: 3}}
+          />
+          <Autocomplete
+            id="user"
+            options={users}
+            getOptionLabel={(option) => option.username}
+            getOptionKey={(option) => option.id}
+            value={users.find((user) => user.id === id_user)}
+            sx={{marginBottom: 3}}
+            onChange={(event, newValue) => {
+              setIdUser(newValue.id);
+            }}
+            renderInput={(params) => (
+              <TextField {...params} label="Utilisateur" />
+            )}
           />
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DateTimePicker

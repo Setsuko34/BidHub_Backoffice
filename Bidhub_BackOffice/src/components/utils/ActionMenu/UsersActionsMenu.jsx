@@ -9,8 +9,15 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import {auth} from "../../../config/Firebase";
 import {db} from "../../../config/Firebase";
 import {doc, getDoc, deleteDoc} from "firebase/firestore";
+import UserModal from "../Modals/UserModal";
 
-export default function UsersActionsMenu({userId}) {
+export default function UsersActionsMenu({
+  userId,
+  user,
+  refresh,
+  setOpenDelete,
+  setUserToDelete,
+}) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
   const docRef = doc(db, "Utilisateurs", userId);
@@ -29,31 +36,8 @@ export default function UsersActionsMenu({userId}) {
 
   const handleDelete = async () => {
     console.log("Supprimer l'utilisateur");
-
-    //delete le document de l'utilisateur dans la base de données Firestore
-    //fonctionnel
-    // await deleteDoc(docRef)
-    //   .then(() => {
-    //     console.log("User deleted successfully");
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error deleting user:", error);
-    //   });
-
-    // Code to delete user from the authentication base in Firebase
-    //non fonctionnel
-    //TODO: Trouver une solution pour supprimer l'utilisateur de la base d'authentification
-    //peut etre depuis une api nodejs avec : https://firebase.google.com/docs/auth/admin/manage-users#delete_a_user
-    //     const admin = require('firebase-admin');
-    // admin.initializeApp();
-
-    // admin.auth().deleteUser(uid)
-    //   .then(() => {
-    //     console.log('Successfully deleted user');
-    //   })
-    //   .catch((error) => {
-    //     console.log('Error deleting user:', error);
-    //   });
+    setUserToDelete(user.id);
+    setOpenDelete(true);
     setOpen(false);
   };
   // Code to delete user from the authentication base in Firebase
@@ -77,15 +61,7 @@ export default function UsersActionsMenu({userId}) {
           "aria-labelledby": "composition-button",
         }}
       >
-        <MenuItem
-          variant="contained"
-          color="primary"
-          onClick={handleClose}
-          disableRipple
-        >
-          <EditIcon />
-          Modifier
-        </MenuItem>
+        <UserModal user={user} refresh={refresh} />
         <MenuItem
           variant="contained"
           color="error"

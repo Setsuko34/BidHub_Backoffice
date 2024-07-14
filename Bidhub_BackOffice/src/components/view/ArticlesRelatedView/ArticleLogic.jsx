@@ -66,7 +66,6 @@ export const CreateArticle = async (
       const urlSnap = await getDownloadURL(snapshot.ref);
       url.push(urlSnap);
     });
-
     // Upload article
     const ArtName = dayjs().valueOf().toString();
     const articleRef = ref(storage, `articles/article/${ArtName}`);
