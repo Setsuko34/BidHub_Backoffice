@@ -278,12 +278,144 @@ exports.deleteUser = onRequest({cors: true}, async (req, res) => {
   }
 });
 
-//TODO : fix la notifications de nouvelles encheres pour les Acquereurs
-//TODO : voir pourquoi quand un textField est vide dans la mise à jour d'un user il selectionne la modale et nous empeche donc d'écrire au clavier
-//TODO : notification lors de la suppression d'un article à toute les personnes aillant encheries dessus, voir si c'est possible avec un declencheur sur la table article
-//TODO : notification lors de l'atteinte de la date de fin de l'enchère à la personne ayant la meilleure enchère pour lui signalez sa victoire et donc qu'il peut télécharger l'article et payer
-//TODO : Fixer la création d'un article (voir pourquoi le imd_list n'est pas bien enregistré)
-//TODO : Fixer la mis à jour d'un article (voir pourquoi les images sont supprimées si l'on en renseigne pas de nouvelles)
+//watcher sur la table Articles pour envoyer une notification à l'utilisateur qui a posté l'article et les enchérisseurs lorsque l'enchere arrive a son terme
+exports.startWatchers = functions.pubsub
+  .schedule("every 10 minutes")
+  .onRun(async (context) => {
+    const now = admin.firestore.Timestamp.now();
+    const nowDate = now.toDate();
+    const fifteenMinutesAgo = new Date(nowDate.getTime() - 10 * 60 * 1000); // 15 minutes ago
+
+    const auctionsRef = db.collection("Articles");
+    const query = auctionsRef
+      .where(
+        "date_heure_fin",
+        ">",
+        admin.firestore.Timestamp.fromDate(fifteenMinutesAgo)
+      )
+      .where("date_heure_fin", "<=", nowDate);
+
+    try {
+      const snapshot = await query.get();
+      const promises = snapshot.docs.map(async (doc) => {
+        const data = doc.data();
+        if (data.date_heure_fin.toDate() <= nowDate) {
+          console.log(`Auction ${doc.id} has expired.`);
+          await handleExpiredAuction(doc);
+        }
+      });
+
+      await Promise.all(promises);
+    } catch (error) {
+      console.error("Error checking auctions:", error);
+    }
+
+    return null;
+  });
+
+async function handleExpiredAuction(doc) {
+  const data = doc.data();
+  const articleId = doc.id;
+  const userId = data.id_user; // Assuming 'id_user' is the ID of the user who created the article
+
+  try {
+    // Get the user document
+    const userDoc = await db.collection("Utilisateurs").doc(userId).get();
+    const userFCMToken = userDoc.data().fcmToken;
+
+    // Send notification to the article creator
+    if (userFCMToken) {
+      await sendNotification(
+        userFCMToken,
+        `Fin de la vente de ${data.title}`,
+        `Le temps est écoulé pour la vente de l'article ${data.title}.`
+      );
+    }
+
+    // Get the highest bidder
+    const bidsSnapshot = await db
+      .collection("Encheres")
+      .where("id_article", "==", articleId)
+      .orderBy("montant", "desc")
+      .get();
+
+    if (!bidsSnapshot.empty) {
+      const highestBid = bidsSnapshot.docs[0].data();
+      const highestBidderId = highestBid.id_user;
+
+      // Get the highest bidder's FCM token
+      const highestBidderDoc = await db
+        .collection("Utilisateurs")
+        .doc(highestBidderId)
+        .get();
+      const highestBidderFCMToken = highestBidderDoc.data().fcmToken;
+
+      // Send notification to the highest bidder
+      if (highestBidderFCMToken) {
+        await sendNotification(
+          highestBidderFCMToken,
+          "Félicitations !",
+          `Tu es le grand gagnant de l'article : ${data.title}.`
+        );
+      }
+
+      // Send notification to other bidders
+      const otherBidders = bidsSnapshot.docs
+        .slice(1)
+        .map((doc) => doc.data().id_user);
+      var biddersFCMToken = [];
+      const otherBiddersPromises = otherBidders.map(async (bidderId) => {
+        const bidderDoc = await db
+          .collection("Utilisateurs")
+          .doc(bidderId)
+          .get();
+        if (
+          bidderDoc.data().fcmToken != "" &&
+          !biddersFCMToken.includes(bidderDoc.data().fcmToken) &&
+          bidderDoc.data().fcmToken != undefined
+        ) {
+          biddersFCMToken.push(bidderDoc.data().fcmToken);
+        }
+      });
+
+      await Promise.all(otherBiddersPromises).then(async () => {
+        const message = {
+          notification: {
+            title: "Désolé ! La prochaine fois peut-être",
+            body: `Tu as perdu l'enchère pour l'article : ${data.title}.`,
+          },
+          tokens: biddersFCMToken,
+        };
+
+        await admin
+          .messaging()
+          .sendEachForMulticast(message)
+          .then((response) => {
+            console.log("Successfully sent message:", response);
+          });
+      });
+    }
+  } catch (error) {
+    console.error(`Error handling expired auction ${articleId}:`, error);
+  }
+}
+
+async function sendNotification(token, title, body) {
+  const message = {
+    notification: {
+      title: title,
+      body: body,
+    },
+    token: token,
+  };
+
+  try {
+    const response = await admin.messaging().send(message);
+    console.log("Successfully sent message:", response);
+  } catch (error) {
+    console.error("Error sending message:", error);
+  }
+}
 
 // Envoi de l'email de réinitialisation de mot de passe
 // await admin
