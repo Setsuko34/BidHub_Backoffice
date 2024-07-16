@@ -31,6 +31,45 @@ export const GetEncheres = async ({idArticle}, setEncheres) => {
     console.error("Erreur lors de la récupération des enchères:", error);
   }
 };
+export const getNumberEncheresByDay = async (
+  setNumberEncheresByDay,
+  setTotal
+) => {
+  try {
+    const counterByDate = {};
+    var totalEncheres = 0;
+    const querySnapshot = await getDocs(collection(db, "Encheres"));
+    console.log(querySnapshot.docs);
+    querySnapshot.docs.forEach((doc) => {
+      const data = doc.data();
+      const date = data.date_enchere.toDate().toLocaleDateString("fr-FR");
+      if (date) {
+        if (!counterByDate[date]) {
+          counterByDate[date] = 1;
+        } else {
+          counterByDate[date] += 1;
+        }
+        totalEncheres += 1;
+      }
+    });
+
+    // Convertir en tableau, trier, puis reconvertir en objet
+    const sortedEntries = Object.entries(counterByDate).sort((a, b) => {
+      const dateA = a[0].split("/").reverse().join("/");
+      const dateB = b[0].split("/").reverse().join("/");
+      return dateA.localeCompare(dateB);
+    });
+    const sortedCounterByDate = Object.fromEntries(sortedEntries);
+
+    setNumberEncheresByDay(sortedCounterByDate);
+    setTotal(totalEncheres);
+  } catch (error) {
+    console.error(
+      "Erreur lors de la récupération des encheres par jour:",
+      error
+    );
+  }
+};
 
 export const DeleteEnchere = async (encheresID, articleId, setEncheres) => {
   const encheresRef = doc(db, "Encheres", encheresID);

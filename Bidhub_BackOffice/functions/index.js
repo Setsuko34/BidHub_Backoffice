@@ -30,6 +30,7 @@ exports.sendNewEnchereNotificationProprietaire = functions.firestore
         body: `Nouvelle enchère de ${enchere.montant}€ sur ton article : ${
           article.data().title
         }`,
+        image: article.data().img_list[0],
       },
       token: user.data().fcmToken,
     };
@@ -49,7 +50,7 @@ exports.sendNewEnchereNotificationAcquereur = functions.firestore
   .document("/Encheres/{enchereId}")
   .onCreate(async (snapshot, context) => {
     const enchere = snapshot.data();
-
+    console.log("enchere", enchere);
     const article = await db
       .collection("Articles")
       .doc(enchere.id_article)
@@ -58,40 +59,96 @@ exports.sendNewEnchereNotificationAcquereur = functions.firestore
     const enchereSnapshot = await db
       .collection("Encheres")
       .where("id_article", "==", enchere.id_article)
+      .where("id_user", "!=", enchere.id_user)
       .get();
 
-    if (!enchereSnapshot.empty) {
-      console.log("enchereSnapshot", enchereSnapshot.docs);
-    }
     let TokenList = [];
-    enchereSnapshot.docs.forEach(async (doc) => {
+    const tokenPromises = enchereSnapshot.docs.map(async (doc) => {
       const enchereData = doc.data();
       const user = await db
         .collection("Utilisateurs")
         .doc(enchereData.id_user)
         .get();
-
-      TokenList.push(user.data().fcmToken);
+      if (
+        user.data().fcmToken != "" &&
+        !TokenList.includes(user.data().fcmToken) &&
+        user.data().fcmToken != undefined
+      ) {
+        TokenList.push(user.data().fcmToken);
+      }
     });
-    const message = {
-      notification: {
-        title: "Nouvelle enchère sur un article que tu voulais !!",
-        body: `Nouvelle enchère de ${enchere.montant}€ sur l'article : ${
-          article.data().title
-        } viens vite surenchérir !`,
-      },
-      token: TokenList,
-    };
+    await Promise.all(tokenPromises).then(async () => {
+      const message = {
+        notification: {
+          title: "Nouvelle enchère sur un article que tu voulais !!",
+          body: `Nouvelle enchère de ${enchere.montant}€ sur l'article : ${
+            article.data().title
+          } VIENS VITE SURENCHÉRIR !`,
+          image: article.data().img_list[0],
+        },
+        tokens: TokenList,
+      };
 
-    // Envoyer la notification
-    try {
-      const response = await admin.messaging().sendEachForMulticast(message);
-      console.log("Notification sent successfully:", response); // Log success
-      return "Notification sent successfully!";
-    } catch (error) {
-      console.error("Error sending notification:", error);
-      return "Error sending notification";
-    }
+      // Envoyer la notification
+      try {
+        const response = await admin.messaging().sendEachForMulticast(message);
+        console.log("Notification sent successfully:", response); // Log success
+        return "Notification sent successfully!";
+      } catch (error) {
+        console.error("Error sending notification:", error);
+        return "Error sending notification";
+      }
+    });
+  });
+
+exports.sendDeleteArticleNotif = functions.firestore
+  .document("/Articles/{articleId}")
+  .onDelete(async (snapshot, context) => {
+    const article = snapshot.data();
+    console.log("id_article", snapshot.id);
+
+    const enchereSnapshot = await db
+      .collection("Encheres")
+      .where("id_article", "==", snapshot.id)
+      .get();
+
+    let TokenList = [];
+    const tokenPromises = enchereSnapshot.docs.map(async (doc) => {
+      const enchereData = doc.data();
+      const enchereRef = db.collection("Encheres").doc(doc.id);
+      await enchereRef.delete();
+      const user = await db
+        .collection("Utilisateurs")
+        .doc(enchereData.id_user)
+        .get();
+      if (
+        user.data().fcmToken != "" &&
+        !TokenList.includes(user.data().fcmToken) &&
+        user.data().fcmToken != undefined
+      ) {
+        TokenList.push(user.data().fcmToken);
+      }
+    });
+    await Promise.all(tokenPromises).then(async () => {
+      const message = {
+        notification: {
+          title: `${article.title} a été supprimé !`,
+          body: `Toutes les enchères sur ${article.title} ont été annulée !`,
+          image: article.img_list[0],
+        },
+        tokens: TokenList,
+      };
+
+      // Envoyer la notification
+      try {
+        const response = await admin.messaging().sendEachForMulticast(message);
+        console.log("Notification sent successfully:", response); // Log success
+        return "Notification sent successfully!";
+      } catch (error) {
+        console.error("Error sending notification:", error);
+        return "Error sending notification";
+      }
+    });
   });
 
 //api user function related

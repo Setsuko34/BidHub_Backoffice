@@ -32,6 +32,43 @@ export const getAllArticles = async (setArticles, setLoading) => {
   }
 };
 
+export const getNumberArticlesByDay = async (
+  setNumberArticlesByDay,
+  setTotal
+) => {
+  try {
+    const counterByDate = {};
+    var totalArticles = 0;
+    const querySnapshot = await getDocs(collection(db, "Articles"));
+    console.log(querySnapshot.docs);
+    querySnapshot.docs.forEach((doc) => {
+      const data = doc.data();
+      const date = data.date_heure_debut.toDate().toLocaleDateString("fr-FR");
+      if (date) {
+        if (!counterByDate[date]) {
+          counterByDate[date] = 1;
+        } else {
+          counterByDate[date] += 1;
+        }
+        totalArticles += 1;
+      }
+    });
+
+    // Convertir en tableau, trier, puis reconvertir en objet
+    const sortedEntries = Object.entries(counterByDate).sort((a, b) => {
+      const dateA = a[0].split("/").reverse().join("/");
+      const dateB = b[0].split("/").reverse().join("/");
+      return dateA.localeCompare(dateB);
+    });
+    const sortedCounterByDate = Object.fromEntries(sortedEntries);
+
+    setNumberArticlesByDay(sortedCounterByDate);
+    setTotal(totalArticles);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des utilisateurs:", error);
+  }
+};
+
 export const GetInfo = async (idArticle, setArticle, setCreator) => {
   const articleRef = doc(db, "Articles", idArticle);
   const docSnap = await getDoc(articleRef);
@@ -58,44 +95,47 @@ export const CreateArticle = async (
 ) => {
   const url = [];
   try {
-    // Upload images to Firebase storage
-    imgArray.forEach(async (img) => {
+    if (imgArray.length === 0) {
+      console.error("No images to upload!");
+      return;
+    }
+    const ImgArraySnap = imgArray.map(async (img) => {
       const fileName = dayjs().valueOf().toString();
       const fileRef = ref(storage, `articles/preview/${fileName}`);
       const snapshot = await uploadBytes(fileRef, img);
       const urlSnap = await getDownloadURL(snapshot.ref);
       url.push(urlSnap);
     });
-    // Upload article
-    const ArtName = dayjs().valueOf().toString();
-    const articleRef = ref(storage, `articles/article/${ArtName}`);
-    const snapshotArt = await uploadBytes(articleRef, file);
-    const urlArt = await getDownloadURL(snapshotArt.ref);
-
-    // Create new article in Firebase database
-    const articlesRef = collection(db, "Articles");
-    const newArticle = {
-      title: article.title,
-      description: article.description,
-      prix_depart: Number(article.prixDepart),
-      img_list: url,
-      url_article: urlArt,
-      date_heure_debut: dayjs().toDate(),
-      date_heure_fin: dayjs(article.endDate).toDate(),
-      id_user: article.id_user,
-    };
-
-    await addDoc(articlesRef, newArticle);
-    // Reset form fields and close modal
-    setTitle("");
-    setDescription("");
-    setPrixDepart(0);
-    setFile(null);
-    setImgArray([]);
-    setEndDate(dayjs());
-    setOpen(false);
-    refresh(true);
-    console.log("Article created successfully!");
+    await Promise.all(ImgArraySnap).then(async () => {
+      // Upload article
+      const ArtName = dayjs().valueOf().toString();
+      const articleRef = ref(storage, `articles/article/${ArtName}`);
+      const snapshotArt = await uploadBytes(articleRef, file);
+      const urlArt = await getDownloadURL(snapshotArt.ref);
+      // Create new article in Firebase database
+      const articlesRef = collection(db, "Articles");
+      const newArticle = {
+        title: article.title,
+        description: article.description,
+        prix_depart: Number(article.prixDepart),
+        img_list: url,
+        url_article: urlArt,
+        date_heure_debut: dayjs().toDate(),
+        date_heure_fin: dayjs(article.endDate).toDate(),
+        id_user: article.id_user,
+      };
+      await addDoc(articlesRef, newArticle);
+      // Reset form fields and close modal
+      setTitle("");
+      setDescription("");
+      setPrixDepart(0);
+      setFile(null);
+      setImgArray([]);
+      setEndDate(dayjs());
+      setOpen(false);
+      refresh(true);
+      console.log("Article created successfully!");
+    });
   } catch (error) {
     console.error("Error creating article:", error);
   }
@@ -112,6 +152,8 @@ export const UpdateArticle = async (
   const articleRef = doc(db, "Articles", idArticle);
   try {
     const doc = await getDoc(articleRef);
+    console.log("file", file);
+    console.log("imgArray", imgArray.length > 0);
     //on récupère le document de l'article afin de récupérer les images et si on a file avec quelque chose on supprime les images de l'article pour mettre la nouvelle
     if (file != null) {
       deleteObject(ref(storage, doc.data().url_article))
@@ -127,8 +169,8 @@ export const UpdateArticle = async (
       const urlSnap = await getDownloadURL(snapshot.ref);
       article.url_article = urlSnap;
     }
-    if (imgArray != []) {
-      doc.data().img_list.forEach(async (img) => {
+    if (imgArray.length > 0) {
+      const imgArrayDel = doc.data().img_list.map(async (img) => {
         deleteObject(ref(storage, img))
           .then(() => {
             console.log("Article deleted successfully from storage");
@@ -137,13 +179,16 @@ export const UpdateArticle = async (
             console.error("Error deleting Article:", error);
           });
       });
-      article.img_list = [];
-      imgArray.forEach(async (preview) => {
-        const fileName = dayjs().valueOf().toString();
-        const fileRef = ref(storage, `articles/preview/${fileName}`);
-        const snapshot = await uploadBytes(fileRef, preview);
-        const urlSnap = await getDownloadURL(snapshot.ref);
-        article.img_list.push(urlSnap);
+      await Promise.all(imgArrayDel).then(async () => {
+        article.img_list = [];
+        const ImgArraySnap = imgArray.map(async (img) => {
+          const fileName = dayjs().valueOf().toString();
+          const fileRef = ref(storage, `articles/preview/${fileName}`);
+          const snapshot = await uploadBytes(fileRef, img);
+          const urlSnap = await getDownloadURL(snapshot.ref);
+          article.img_list.push(urlSnap);
+        });
+        await Promise.all(ImgArraySnap);
       });
     }
     console.log(article);
@@ -202,12 +247,6 @@ export const DeleteArticle = async (articleId, setOpen, refresh) => {
         console.error("Error deleting Article:", error);
       });
 
-    // delete les enchères de l'article dans la base de données Firestore
-    await Promise.all(
-      EncheresArticles.docs.map(async (documentInf) => {
-        DeleteEnchere(documentInf.ref);
-      })
-    );
     setOpen(false);
     refresh(true);
   }
