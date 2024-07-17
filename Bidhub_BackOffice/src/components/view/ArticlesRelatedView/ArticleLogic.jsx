@@ -109,7 +109,7 @@ export const CreateArticle = async (
     });
     await Promise.all(ImgArraySnap).then(async () => {
       // Upload article
-      const fileName = fileName.split(".")[0];
+      const fileName = file.name.split(".")[0];
       const ArtName = fileName + "_" + dayjs().valueOf().toString();
       const articleRef = ref(storage, `articles/article/${ArtName}`);
       const snapshotArt = await uploadBytes(articleRef, file);
