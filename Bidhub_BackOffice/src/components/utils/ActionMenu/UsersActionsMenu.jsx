@@ -71,15 +71,6 @@ export default function UsersActionsMenu({
           <DeleteIcon />
           Supprimer
         </MenuItem>
-        <MenuItem
-          variant="contained"
-          color="success"
-          onClick={handleClose}
-          disableRipple
-        >
-          <MoreHorizIcon />
-          Voir Plus
-        </MenuItem>
       </Menu>
     </div>
   );

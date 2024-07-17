@@ -100,7 +100,8 @@ export const CreateArticle = async (
       return;
     }
     const ImgArraySnap = imgArray.map(async (img) => {
-      const fileName = dayjs().valueOf().toString();
+      const imgname = img.name.split(".")[0];
+      const fileName = imgname + "_" + dayjs().valueOf().toString();
       const fileRef = ref(storage, `articles/preview/${fileName}`);
       const snapshot = await uploadBytes(fileRef, img);
       const urlSnap = await getDownloadURL(snapshot.ref);
@@ -108,7 +109,8 @@ export const CreateArticle = async (
     });
     await Promise.all(ImgArraySnap).then(async () => {
       // Upload article
-      const ArtName = dayjs().valueOf().toString();
+      const fileName = fileName.split(".")[0];
+      const ArtName = fileName + "_" + dayjs().valueOf().toString();
       const articleRef = ref(storage, `articles/article/${ArtName}`);
       const snapshotArt = await uploadBytes(articleRef, file);
       const urlArt = await getDownloadURL(snapshotArt.ref);
@@ -156,14 +158,17 @@ export const UpdateArticle = async (
     console.log("imgArray", imgArray.length > 0);
     //on récupère le document de l'article afin de récupérer les images et si on a file avec quelque chose on supprime les images de l'article pour mettre la nouvelle
     if (file != null) {
-      deleteObject(ref(storage, doc.data().url_article))
-        .then(() => {
-          console.log("Article deleted successfully from storage");
-        })
-        .catch((error) => {
-          console.error("Error deleting Article:", error);
-        });
-      const fileName = dayjs().valueOf().toString();
+      if (doc.data().url_article) {
+        deleteObject(ref(storage, doc.data().url_article))
+          .then(() => {
+            console.log("Article deleted successfully from storage");
+          })
+          .catch((error) => {
+            console.error("Error deleting Article:", error);
+          });
+      }
+      const fileNam = file.name.split(".")[0];
+      const fileName = fileNam + "_" + dayjs().valueOf().toString();
       const fileRef = ref(storage, `articles/article/${fileName}`);
       const snapshot = await uploadBytes(fileRef, file);
       const urlSnap = await getDownloadURL(snapshot.ref);
@@ -171,18 +176,21 @@ export const UpdateArticle = async (
     }
     if (imgArray.length > 0) {
       const imgArrayDel = doc.data().img_list.map(async (img) => {
-        deleteObject(ref(storage, img))
-          .then(() => {
-            console.log("Article deleted successfully from storage");
-          })
-          .catch((error) => {
-            console.error("Error deleting Article:", error);
-          });
+        if (doc.data().img_list.length > 0) {
+          deleteObject(ref(storage, img))
+            .then(() => {
+              console.log("Article deleted successfully from storage");
+            })
+            .catch((error) => {
+              console.error("Error deleting Article:", error);
+            });
+        }
       });
       await Promise.all(imgArrayDel).then(async () => {
         article.img_list = [];
         const ImgArraySnap = imgArray.map(async (img) => {
-          const fileName = dayjs().valueOf().toString();
+          const imgname = img.name.split(".")[0];
+          const fileName = imgname + "_" + dayjs().valueOf().toString();
           const fileRef = ref(storage, `articles/preview/${fileName}`);
           const snapshot = await uploadBytes(fileRef, img);
           const urlSnap = await getDownloadURL(snapshot.ref);
